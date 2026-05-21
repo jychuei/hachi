@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HACHI">
+<meta name="theme-color" content="#0A0A0A">
+<title>HACHI — Jason Chuei</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0A0A0A;
+  --surface: #141414;
+  --card: #1A1A1A;
+  --border: rgba(255,255,255,0.08);
+  --accent: #C8F135;
+  --accent-dim: #8CB800;
+  --text: #F0F0F0;
+  --muted: #666;
+  --sub: #999;
+  --red: #FF4D4D;
+  --amber: #FFB547;
+  --blue: #5B9CF6;
+  --green: #4ADE80;
+  --safe: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+.bebas { font-family: 'Bebas Neue', sans-serif; }
+.mono { font-family: 'DM Mono', monospace; }
+
+/* LAYOUT */
+#app { display: flex; flex-direction: column; height: 100dvh; }
+#main { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: calc(60px + var(--safe)); }
+#content { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+/* HEADER */
+#header { padding: 12px 16px 8px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.header-top { display: flex; justify-content: space-between; align-items: flex-end; }
+.app-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--accent); line-height: 1; }
+.header-meta { font-size: 11px; color: var(--muted); text-align: right; line-height: 1.4; }
+.header-badges { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+
+/* BOTTOM NAV */
+#nav { display: flex; background: var(--surface); border-top: 1px solid var(--border); padding-bottom: var(--safe); flex-shrink: 0; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border: none; background: none; color: var(--muted); cursor: pointer; gap: 2px; transition: color .15s; font-size: 10px; font-family: 'DM Sans', sans-serif; letter-spacing: .5px; }
+.nav-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.nav-btn.active { color: var(--accent); }
+
+/* CARDS */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+.card-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; font-weight: 500; }
+
+/* METRICS GRID */
+.metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.metric-box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.metric-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.metric-value { font-family: 'Bebas Neue', sans-serif; font-size: 32px; line-height: 1; color: var(--accent); }
+.metric-sub { font-size: 11px; color: var(--sub); margin-top: 2px; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 500; letter-spacing: .5px; }
+.b-accent { background: rgba(200,241,53,.12); color: var(--accent); }
+.b-red { background: rgba(255,77,77,.12); color: var(--red); }
+.b-amber { background: rgba(255,181,71,.12); color: var(--amber); }
+.b-blue { background: rgba(91,156,246,.12); color: var(--blue); }
+.b-green { background: rgba(74,222,128,.12); color: var(--green); }
+.b-gray { background: rgba(255,255,255,.06); color: var(--sub); }
+
+/* BUTTONS */
+.btn { padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all .15s; }
+.btn-primary { background: var(--accent); color: #0A0A0A; }
+.btn-primary:active { background: var(--accent-dim); }
+.btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:active { background: var(--card); }
+.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+.btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(255,77,77,.2); }
+
+/* FORMS */
+.form-group { margin-bottom: 10px; }
+.form-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; display: block; letter-spacing: .5px; }
+input, select, textarea { width: 100%; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; -webkit-appearance: none; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+/* PROGRAMME DAY */
+.day-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+.day-header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.day-header:active { background: rgba(255,255,255,.03); }
+.day-name { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; }
+.day-tags { display: flex; gap: 4px; align-items: center; }
+.day-body { border-top: 1px solid var(--border); padding: 12px 16px; display: none; }
+.day-body.open { display: block; }
+.session-block { background: var(--surface); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.session-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.session-title { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+.ex-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.04); font-size: 12px; gap: 8px; }
+.ex-item:last-child { border-bottom: none; }
+.ex-name { color: var(--sub); flex-shrink: 0; }
+.ex-detail { color: var(--text); text-align: right; font-family: 'DM Mono', monospace; font-size: 11px; }
+.ex-weight { color: var(--accent); font-weight: 500; }
+
+/* RACE CARD */
+.race-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.race-item:last-child { border-bottom: none; }
+.race-left { }
+.race-loc { font-size: 13px; font-weight: 500; }
+.race-meta { font-size: 11px; color: var(--muted); margin-top: 2px; display: flex; gap: 6px; align-items: center; }
+.race-time { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--text); }
+
+/* STATION ROWS */
+.st-row { display: grid; grid-template-columns: 1fr 60px 60px 60px; gap: 4px; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.04); font-size: 12px; }
+.st-row:last-child { border-bottom: none; }
+.st-name { color: var(--sub); }
+.st-time { font-family: 'DM Mono', monospace; font-size: 11px; text-align: center; }
+.st-gap { font-family: 'DM Mono', monospace; font-size: 11px; text-align: center; }
+.st-pct { font-size: 10px; text-align: center; }
+
+/* PROGRESS BAR */
+.pbar { height: 3px; background: rgba(255,255,255,.08); border-radius: 2px; margin-top: 3px; }
+.pbar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width .4s; }
+.pbar-fill.warn { background: var(--amber); }
+.pbar-fill.danger { background: var(--red); }
+
+/* SESSION LOG ITEM */
+.log-item { padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.log-item:last-child { border-bottom: none; }
+.log-left { flex: 1; min-width: 0; }
+.log-type { font-size: 11px; font-weight: 500; margin-bottom: 2px; display: flex; gap: 6px; align-items: center; }
+.log-detail { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+
+/* CHART CONTAINER */
+.chart-wrap { position: relative; width: 100%; }
+
+/* HRV */
+.hrv-alert { padding: 8px 12px; border-radius: 8px; font-size: 12px; margin-top: 8px; }
+.hrv-ok { background: rgba(74,222,128,.1); color: var(--green); }
+.hrv-warn { background: rgba(255,181,71,.1); color: var(--amber); }
+.hrv-bad { background: rgba(255,77,77,.1); color: var(--red); }
+
+/* SECTION */
+.section-header { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; margin-bottom: 12px; color: var(--text); }
+
+/* PRIORITY ITEM */
+.priority-item { margin-bottom: 10px; }
+.priority-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+.priority-name { color: var(--text); }
+.priority-gap { color: var(--red); font-family: 'DM Mono', monospace; font-size: 11px; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 100; display: flex; align-items: flex-end; }
+.modal { background: var(--surface); border-radius: 16px 16px 0 0; padding: 20px 16px; padding-bottom: calc(20px + var(--safe)); width: 100%; max-height: 85dvh; overflow-y: auto; border: 1px solid var(--border); border-bottom: none; }
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.modal-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0; }
+.hidden { display: none !important; }
+
+/* TABS (inline) */
+.inline-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.itab { padding: 8px 14px; font-size: 12px; background: none; border: none; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+.itab.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* PROJECTED */
+.proj-display { text-align: center; padding: 16px; }
+.proj-time { font-family: 'Bebas Neue', sans-serif; font-size: 56px; color: var(--accent); line-height: 1; letter-spacing: 2px; }
+.proj-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
+.proj-target { font-size: 12px; color: var(--sub); margin-top: 6px; }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* COACH BOX */
+.coach-response { font-size: 13px; color: var(--sub); line-height: 1.7; padding: 12px; background: var(--surface); border-radius: 8px; min-height: 48px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="header">
+    <div class="header-top">
+      <div class="app-title">八 HACHI</div>
+      <div class="header-meta">
+        <div id="hdr-countdown"></div>
+        <div id="hdr-phase"></div>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge b-accent">Jason Chuei</span>
+      <span class="badge b-gray">Open M45-49</span>
+      <span class="badge b-blue">Target 1:12–1:14</span>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="content">
+
+      <!-- DASHBOARD -->
+      <div id="pg-dashboard">
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="metric-label">Days to Hangzhou</div>
+            <div class="metric-value" id="m-days">—</div>
+            <div class="metric-sub">July 5, 2026</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Projected finish</div>
+            <div class="metric-value" id="m-proj" style="font-size:26px">—</div>
+            <div class="metric-sub">open singles</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Best open</div>
+            <div class="metric-value" style="font-size:22px;color:var(--text)">1:21:29</div>
+            <div class="metric-sub">Taipei 2025</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">This week</div>
+            <div class="metric-value" id="m-week" style="color:var(--text)">0</div>
+            <div class="metric-sub">sessions logged</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Station radar</div>
+          <div class="chart-wrap" style="height:200px"><canvas id="radarChart" role="img" aria-label="Station performance radar">Radar chart of station performance vs targets.</canvas></div>
+          <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:var(--muted)">
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:var(--accent);border-radius:2px;display:inline-block"></span>Current</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:#5B9CF6;border-radius:2px;display:inline-block"></span>Target</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Priority gaps</div>
+          <div id="priority-gaps"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">HRV monitor</div>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="hrv-in" placeholder="Today's HRV" style="flex:1">
+            <button class="btn btn-primary btn-sm" onclick="logHRV()">Log</button>
+          </div>
+          <div id="hrv-status"></div>
+          <div class="chart-wrap" style="height:60px;margin-top:8px"><canvas id="hrvChart" role="img" aria-label="HRV trend">HRV trend line.</canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">AI coaching note</div>
+          <div class="coach-response" id="coach-note">Log a session to receive a coaching note.</div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px;width:100%" onclick="getCoachNote()">Refresh ↗</button>
+        </div>
+      </div>
+
+      <!-- PROGRAMME -->
+      <div id="pg-programme" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="section-header" style="margin:0">Programme</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:11px;color:var(--muted)">Wk</span>
+            <select id="wk-sel" style="width:52px;padding:4px 8px;font-size:12px" onchange="renderProg()">
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option>
+            </select>
+            <select id="venue-sel" style="width:90px;padding:4px 8px;font-size:12px" onchange="renderProg()">
+              <option value="std">Std gym</option>
+              <option value="vamos">Vamos</option>
+            </select>
+          </div>
+        </div>
+        <div id="prog-phase-badge" style="margin-bottom:10px"></div>
+        <div id="prog-days"></div>
+      </div>
+
+      <!-- LOG -->
+      <div id="pg-log" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="section-header" style="margin:0">Session Log</div>
+          <button class="btn btn-primary btn-sm" onclick="openLogModal()">+ Log</button>
+        </div>
+        <div class="card" id="log-list-card">
+          <div id="log-list"><div style="color:var(--muted);font-size:13px">No sessions logged yet.</div></div>
+        </div>
+      </div>
+
+      <!-- RACES -->
+      <div id="pg-races" class="hidden">
+        <div class="section-header">Race Analysis</div>
+
+        <div class="metrics-grid" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="metric-box"><div class="metric-label">Races</div><div class="metric-value" style="color:var(--text)">17</div></div>
+          <div class="metric-box"><div class="metric-label">Best open</div><div class="metric-value" style="font-size:18px">1:21:29</div></div>
+          <div class="metric-box"><div class="metric-label">Best AG</div><div class="metric-value" style="color:var(--text)">#15</div><div class="metric-sub">Wuhan relay</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">HK 2026 — station breakdown</div>
+          <div style="display:grid;grid-template-columns:1fr 52px 52px 52px;gap:4px;padding:4px 0;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)">
+            <span>Station</span><span style="text-align:center">Time</span><span style="text-align:center">Target</span><span style="text-align:center">Pctile</span>
+          </div>
+          <div id="hk-breakdown"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">HK 2026 — run splits</div>
+          <div class="chart-wrap" style="height:160px"><canvas id="runsChart" role="img" aria-label="Run splits bar chart">8 run split times.</canvas></div>
+          <div style="font-size:11px;color:var(--red);margin-top:6px">Run 8: 6:25 — durability target #1</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Open race trend</div>
+          <div class="chart-wrap" style="height:140px"><canvas id="openTrendChart" role="img" aria-label="Open race times trend">Open race finish times.</canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">All 17 races</div>
+          <div id="all-races"></div>
+        </div>
+      </div>
+
+      <!-- BENCHMARKS -->
+      <div id="pg-bench" class="hidden">
+        <div class="section-header">Benchmarks</div>
+        <div class="card">
+          <div class="proj-display">
+            <div class="proj-time" id="proj-big">—</div>
+            <div class="proj-label">Projected finish</div>
+            <div class="proj-target">Target: 1:12–1:14 · Best open: 1:21:29</div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:grid;grid-template-columns:1fr 52px 52px 52px;gap:4px;padding:4px 0;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)">
+            <span>Station</span><span style="text-align:center">Best</span><span style="text-align:center">Target</span><span style="text-align:center">Gap</span>
+          </div>
+          <div id="bench-rows"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px">Tap any station to update training best</div>
+
+        <div class="card" style="margin-top:10px">
+          <div class="card-title">Run targets by phase</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <div style="background:var(--surface);border-radius:6px;padding:6px 10px;font-size:11px"><div style="color:var(--muted);font-size:10px">Wks 1–3</div><div class="mono" style="color:var(--accent)">4:48/km</div></div>
+            <div style="background:var(--surface);border-radius:6px;padding:6px 10px;font-size:11px"><div style="color:var(--muted);font-size:10px">Wks 5–7</div><div class="mono" style="color:var(--accent)">4:42/km</div></div>
+            <div style="background:var(--surface);border-radius:6px;padding:6px 10px;font-size:11px"><div style="color:var(--muted);font-size:10px">Wks 9–11</div><div class="mono" style="color:var(--accent)">4:35/km</div></div>
+            <div style="background:var(--surface);border-radius:6px;padding:6px 10px;font-size:11px"><div style="color:var(--muted);font-size:10px">Race day</div><div class="mono" style="color:var(--accent)">4:37/km</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav id="nav">
+    <button class="nav-btn active" onclick="goTo('dashboard',this)" id="nav-dashboard">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      DASH
+    </button>
+    <button class="nav-btn" onclick="goTo('programme',this)" id="nav-programme">
+      <svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      PLAN
+    </button>
+    <button class="nav-btn" onclick="goTo('log',this)" id="nav-log">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
+      LOG
+    </button>
+    <button class="nav-btn" onclick="goTo('races',this)" id="nav-races">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      RACES
+    </button>
+    <button class="nav-btn" onclick="goTo('bench',this)" id="nav-bench">
+      <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      BENCH
+    </button>
+  </nav>
+</div>
+
+<!-- LOG MODAL -->
+<div id="log-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">
+      Log Session
+      <button class="modal-close" onclick="closeLogModal()">✕</button>
+    </div>
+    <div class="form-row" style="margin-bottom:10px">
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Date</label>
+        <input type="date" id="l-date">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Type</label>
+        <select id="l-type" onchange="toggleFields()">
+          <option>Run</option><option>Gym</option><option>F45</option><option>Compromised</option><option>Race Sim</option><option>Pre-coaching</option><option>Recovery</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="f-run">
+      <div class="form-row" style="margin-bottom:10px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Run type</label>
+          <select id="l-run-type"><option>Z2</option><option>Threshold</option><option>Intervals</option><option>Long run</option><option>Hill sprints</option><option>Easy</option></select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Distance (km)</label>
+          <input type="number" id="l-dist" step="0.1" placeholder="10.5">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:10px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Avg pace (m:ss)</label>
+          <input type="text" id="l-pace" placeholder="5:26">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Avg HR</label>
+          <input type="number" id="l-hr" placeholder="131">
+        </div>
+      </div>
+    </div>
+
+    <div id="f-gym" class="hidden">
+      <div class="form-group">
+        <label class="form-label">Key lifts</label>
+        <textarea id="l-lifts" rows="3" placeholder="Squat 4×10@70kg, RDL 4×10@70kg, Farmer carry 30kg×30m..."></textarea>
+      </div>
+    </div>
+
+    <div id="f-stations" class="hidden">
+      <div class="form-row" style="margin-bottom:8px">
+        <div><label class="form-label">SkiErg (m:ss)</label><input type="text" id="s-ski" placeholder="4:10"></div>
+        <div><label class="form-label">Sled push</label><input type="text" id="s-sp" placeholder="2:55"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:8px">
+        <div><label class="form-label">Sled pull</label><input type="text" id="s-sl" placeholder="2:15"></div>
+        <div><label class="form-label">Burpee BJ</label><input type="text" id="s-bbj" placeholder="4:30"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:8px">
+        <div><label class="form-label">Row</label><input type="text" id="s-row" placeholder="3:45"></div>
+        <div><label class="form-label">Farmer carry</label><input type="text" id="s-fc" placeholder="1:37"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:8px">
+        <div><label class="form-label">Lunges</label><input type="text" id="s-lu" placeholder="4:30"></div>
+        <div><label class="form-label">Wall balls</label><input type="text" id="s-wb" placeholder="4:30"></div>
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-bottom:10px">
+      <div class="form-group" style="margin:0">
+        <label class="form-label">RPE (1–10)</label>
+        <input type="number" id="l-rpe" min="1" max="10" placeholder="7">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Duration (min)</label>
+        <input type="number" id="l-dur" placeholder="60">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea id="l-notes" rows="2" placeholder="How did it feel? Injury flags, heat, fatigue..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%" onclick="saveSession()">Save Session</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+const RACE_DATE = new Date('2026-07-05');
+const HK = { SkiErg:287, SledPush:205, SledPull:255, BurpeeBJ:331, Row:296, FarmerCarry:97, Lunges:345, WallBalls:410 };
+const TARGETS = { SkiErg:250, SledPush:175, SledPull:135, BurpeeBJ:235, Row:220, FarmerCarry:115, Lunges:240, WallBalls:230 };
+const HK_PCTS = { SkiErg:87, SledPush:78, SledPull:36, BurpeeBJ:57, Row:73, FarmerCarry:23, Lunges:69, WallBalls:54 };
+const HK_RUNS = [231,267,266,274,282,282,288,385];
+const OPEN_RACES = [
+  {l:'HK 24',s:5360},{l:'Taipei',s:4889},{l:'Asia Chp',s:6088},
+  {l:'Bkk 25',s:4412},{l:'Beijing',s:5077},{l:'Bkk 26',s:5015},{l:'HK 26',s:5149}
+];
+const ALL_RACES = [
+  {d:'Nov 2024',l:'Hong Kong',div:'Open',t:'1:29:20',r:'#412'},
+  {d:'Jan 2025',l:'Shanghai',div:'Pro',t:'1:48:30',r:'#133'},
+  {d:'Feb 2025',l:'Taipei',div:'Open',t:'1:21:29',r:'#117',best:1},
+  {d:'Feb 2025',l:'Bangkok',div:'Doubles',t:'1:17:49',r:'#78'},
+  {d:'Mar 2025',l:'Incheon',div:'Pro',t:'1:34:14',r:'#90'},
+  {d:'Mar 2025',l:'Asia Champs',div:'Open',t:'1:41:28',r:'#818'},
+  {d:'Mar 2025',l:'Bangkok',div:'Open',t:'1:23:32',r:'#219'},
+  {d:'Mar 2025',l:'New Delhi',div:'Pro',t:'1:34:04',r:'#24'},
+  {d:'Apr 2025',l:'Yokohama',div:'Pro',t:'1:36:38',r:'#136'},
+  {d:'Apr 2025',l:'Beijing',div:'Open',t:'1:24:37',r:'#170'},
+  {d:'Nov 2025',l:'Melbourne',div:'Pro',t:'1:28:56',r:'#549'},
+  {d:'Jan 2026',l:'Osaka',div:'Pro',t:'1:31:39',r:'#193'},
+  {d:'Jan 2026',l:'Taipei',div:'Pro',t:'1:31:42',r:'#115'},
+  {d:'Feb 2026',l:'Bangkok',div:'Open',t:'1:23:35',r:'#614'},
+  {d:'Mar 2026',l:'Wuhan',div:'Pro',t:'1:33:19',r:'#62'},
+  {d:'Mar 2026',l:'Wuhan',div:'Relay',t:'1:08:05',r:'#15'},
+  {d:'May 2026',l:'Hong Kong',div:'Open',t:'1:25:49',r:'#559',latest:1},
+];
+
+// ── PROGRAMME DATA ────────────────────────────────────────────────────────
+const PROG = {
+  Mon:{ label:'Monday', sessions:[
+    { type:'Gym', label:'Primary AM', title:'Leg power + strength',
+      exs:[
+        {n:'Warm-up',d:'10 min bike/row easy'},
+        {n:'Barbell back squat',d:{1:'4×10 @ 60kg',4:'4×10 @ 65kg',7:'4×8 @ 75kg',10:'4×8 @ 85kg',13:'3×8 @ 75kg'}},
+        {n:'Conventional deadlift',d:{1:'4×8 @ 75kg',4:'4×8 @ 82kg',7:'4×8 @ 90kg',10:'4×6 @ 100kg',13:'3×8 @ 85kg'}},
+        {n:'Goblet squat',d:{1:'4×20 @ 28kg',4:'4×20 @ 30kg',7:'4×20 @ 32kg',10:'4×18 @ 36kg',13:'3×20 @ 32kg'}},
+        {n:'Farmer carry',d:{1:'3×30m @ 30kg/h',4:'3×40m @ 32kg/h',7:'3×50m @ 36kg/h',10:'3×50m @ 40kg/h',13:'3×50m @ 36kg/h'}},
+        {n:'Bulgarian SS',d:{1:'3×10/leg @ 16kg',4:'3×10/leg @ 18kg',7:'3×10/leg @ 20kg',10:'3×10/leg @ 24kg',13:'3×10/leg @ 20kg'}},
+        {n:'DB thruster',d:{1:'3×15 @ 2×10kg',4:'3×15 @ 2×12kg',7:'3×15 @ 2×12kg',10:'3×12 @ 2×14kg',13:'3×20 @ 2×12kg'}},
+        {n:'Dead hang',d:'3×45–60 sec (grip endurance)'},
+        {n:'Leg press (optional)',d:'3×15 if back fatigued — substitute for squat'},
+      ]
+    },
+    { type:'Run', label:'Secondary PM (optional)', title:'Easy Z2 flush',
+      exs:[{n:'Z2 jog',d:'20–30 min, HR <70%, track or flat'},{n:'Or walk',d:'Hill walk if legs very heavy'}]
+    }
+  ]},
+  Tue:{ label:'Tuesday', sessions:[
+    { type:'Run', label:'Primary AM', title:'Long Z2 run (Garmin base)',
+      exs:[
+        {n:'Warm-up',d:'10 min easy walk/jog'},
+        {n:'Main run',d:{1:'45 min @ 5:20–5:30/km',4:'55 min',7:'65 min',10:'70 min',13:'50 min'}},
+        {n:'Target HR',d:'<75% max, nasal breathing'},
+        {n:'Summer',d:'Early morning, hydrate with electrolytes'},
+      ]
+    },
+    { type:'Run', label:'Secondary PM (optional)', title:'Threshold intervals',
+      exs:[
+        {n:'Warm-up',d:'2 min easy jog'},
+        {n:'Main set',d:{1:'4×800m @ 4:45/km, 90s rest',4:'5×800m @ 4:40/km',7:'4×1000m @ 4:35/km',10:'5×1000m @ 4:25/km',13:'3×1000m @ 4:30/km'}},
+        {n:'Venue',d:'Track preferred — 4×200m = 800m, manageable lengths'},
+      ]
+    }
+  ]},
+  Wed:{ label:'Wednesday', sessions:[
+    { type:'F45', label:'Primary AM — Fixed 7:15', title:'F45 Cardio',
+      exs:[{n:'Session',d:'Cardio F45 — push all outputs'},{n:'Note',d:'Hardest AM of week metabolically'}]
+    },
+    { type:'Gym', label:'Secondary PM (optional)', title:'SkiErg + Row specific block',
+      exs:[
+        {n:'SkiErg',d:{1:'4×500m @ 2:10/500m target',4:'4×600m',7:'4×750m',10:'4×1000m',13:'3×1000m'}},
+        {n:'Row',d:{1:'4×500m @ 1:55/500m target',4:'4×600m',7:'4×750m',10:'4×1000m',13:'3×1000m'}},
+        {n:'Cable row',d:'4×20 explosive, heavy — SkiErg pulling strength'},
+        {n:'Sub (no erg)',d:'6×400m treadmill @ 3:55/km + lat pulldown 3×15'},
+      ]
+    },
+    { type:'Pre-coaching', label:'Optional pre-coaching (Vamos)', title:'Sled / WB block (15–25 min)',
+      exs:[
+        {n:'Option A',d:'4×25m sled push @ 50kg + 4×25m pull, 60s rest'},
+        {n:'Option B',d:'3×30 wall balls (9kg) + 3×20m lunge (20kg) unbroken'},
+        {n:'Option C',d:'2 rounds: sled push+pull → 10 WB → 20m lunge, 90s rest'},
+        {n:'Log',d:'Record max unbroken wall balls each week'},
+      ]
+    }
+  ]},
+  Thu:{ label:'Thursday', sessions:[
+    { type:'Compromised', label:'Primary AM — Key session', title:'Compromised run + station',
+      exs:[
+        {n:'Structure',d:{1:'5 rounds, 90s rest',4:'5 rounds, 80s rest',7:'6 rounds, 75s rest',10:'7 rounds, 60s rest',13:'5 rounds race pace'}},
+        {n:'Each round',d:'800m run @ 4:35–4:40/km → 1 station immediately'},
+        {n:'RULE',d:'Run 1 ≥4:35 always — cap treadmill at 4:35'},
+        {n:'Stations (std)',d:'Rotate: treadmill 400m / BBJ 30r / farmer carry 80m @ 24kg / thruster 20r'},
+        {n:'Stations (Vamos)',d:'Rotate: sled push 2×25m / SkiErg 500m / row 500m / WB 30r / lunge 25m'},
+        {n:'Finish',d:'ALWAYS end with 400m run — trains Run 8 durability'},
+      ]
+    },
+    { type:'Recovery', label:'Secondary PM (optional)', title:'Recovery protocol',
+      exs:[
+        {n:'Massage',d:'60 min weekly slot'},
+        {n:'Mobility',d:'20 min: hip flexors, thoracic, shoulders'},
+        {n:'Cold plunge',d:'2–5 min if available'},
+      ]
+    }
+  ]},
+  Fri:{ label:'Friday', sessions:[
+    { type:'Gym', label:'Primary AM', title:'Posterior chain + carry endurance',
+      exs:[
+        {n:'Warm-up',d:'8 min easy bike'},
+        {n:'RDL',d:{1:'4×10 @ 70kg',4:'4×10 @ 78kg',7:'4×10 @ 85kg',10:'4×10 @ 92kg',13:'3×10 @ 80kg'}},
+        {n:'Heavy farmer carry',d:{1:'3×50m @ 32kg/h',4:'3×50m @ 36kg/h',7:'3×50m @ 38kg/h',10:'3×50m @ 40kg/h',13:'3×50m @ 36kg/h'}},
+        {n:'Suitcase carry',d:{1:'3×25m/side @ 32kg',4:'3×25m/side @ 36kg',7:'3×25m/side @ 40kg',10:'3×25m/side @ 44kg',13:'3×25m/side @ 36kg'}},
+        {n:'Nordic/ham curl',d:'3×8'},
+        {n:'Box jump / broad jump',d:'3×10'},
+        {n:'Goblet squat (endurance)',d:'3×20 @ 28kg no rest'},
+        {n:'Cable row',d:'4×20 explosive — Row station strength'},
+      ]
+    },
+    { type:'Run', label:'Secondary PM (optional)', title:'Hill sprints or track',
+      exs:[
+        {n:'Hill sprints',d:{1:'6×100m @ 85% effort, walk down 90s',4:'7×100m',7:'8×100m',10:'8×100m + 2×200m',13:'5×100m'}},
+        {n:'Or track',d:'4×200m at controlled fast pace'},
+        {n:'Condition',d:'Only if <32°C and legs not heavy'},
+      ]
+    }
+  ]},
+  Sat:{ label:'Saturday', sessions:[
+    { type:'F45', label:'Primary AM — Fixed 9:30', title:'F45 Cardio',
+      exs:[
+        {n:'Odd weeks',d:'Full effort'},
+        {n:'Even weeks',d:'75% — preserve for PM race sim'},
+        {n:'Pre-F45 option',d:'15–20 min easy Z2 from 9:10 if energy good'},
+      ]
+    },
+    { type:'Run', label:'Secondary PM (recommended)', title:'Intervals or race sim',
+      exs:[
+        {n:'Odd weeks',d:{1:'6×1000m @ 4:05/km, 2:30 rest',4:'6×1000m @ 4:00/km',7:'6×1000m @ 3:58/km',10:'6×1000m @ 3:55/km',13:'4×1000m sharp'}},
+        {n:'Even weeks',d:'Full HYROX open sim at race weights (Vamos)'},
+        {n:'Race sim rule',d:'Time every split — Run 8 must match Run 4'},
+      ]
+    }
+  ]},
+  Sun:{ label:'Sunday', sessions:[
+    { type:'Recovery', label:'AM — Fixed (Coaching)', title:'Coaching — no training'},
+    { type:'Recovery', label:'Secondary PM (optional)', title:'Yoga or easy jog',
+      exs:[
+        {n:'Yoga (odd weeks)',d:'60–75 min — hip flexors, thoracic, breathwork'},
+        {n:'Jog (even weeks)',d:'30 min easy Z2, HR <65% after 3pm'},
+        {n:'HRV rule',d:'If recovery <50% → yoga only'},
+      ]
+    },
+    { type:'Pre-coaching', label:'Optional pre-coaching (Vamos)', title:'WB + lunge only',
+      exs:[
+        {n:'Wall balls',d:'2×20 unbroken @ 9kg — log max'},
+        {n:'Lunge',d:'2×20m @ 20kg controlled'},
+        {n:'Note',d:'Legs heavy from Saturday — no sled'},
+      ]
+    }
+  ]}
+};
+const DAY_ORDER = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const TYPE_COLORS = { Run:'#5B9CF6', Gym:'#4ADE80', F45:'#FFB547', Compromised:'#FF6B9D', 'Pre-coaching':'#BF5AF2', Recovery:'#666', 'Race Sim':'#C8F135' };
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let S = { sessions:[], benchmarks:{...HK}, hrv:{history:[]}, newRaces:[] };
+function saveS(){ try{ localStorage.setItem('hachi_v2', JSON.stringify(S)); }catch{} }
+function loadS(){
+  try{
+    const d = localStorage.getItem('hachi_v2');
+    if(d){ const p=JSON.parse(d); S.sessions=p.sessions||[]; S.benchmarks=p.benchmarks||{...HK}; S.hrv=p.hrv||{history:[]}; S.newRaces=p.newRaces||[]; }
+  }catch{}
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+const s2m = s => { const m=Math.floor(s/60),ss=s%60; return m+':'+(ss<10?'0':'')+ss; };
+const m2s = str => { if(!str||!str.includes(':'))return 0; const[m,s]=str.split(':'); return parseInt(m||0)*60+parseInt(s||0); };
+const days2race = () => Math.max(0, Math.ceil((RACE_DATE - new Date())/86400000));
+const curWeek = () => Math.max(1, Math.min(13, Math.ceil((new Date()-new Date('2026-05-19'))/604800000)+1));
+const phaseOf = w => w<=3?'Base':w===4?'Deload':w<=7?'Threshold':w===8?'Deload':w<=11?'Race Specific':w===12?'Deload':'Taper';
+const phaseColor = p => ({Base:'#5B9CF6',Deload:'#FFB547',Threshold:'#C8F135','Race Specific':'#FF6B9D',Peak:'#BF5AF2',Taper:'#FF9500'}[p]||'#666');
+
+function getProgVal(val, wk){
+  if(typeof val === 'string') return val;
+  if(typeof val === 'object'){
+    const keys = Object.keys(val).map(Number).sort((a,b)=>a-b);
+    let chosen = val[keys[0]];
+    for(const k of keys){ if(wk>=k) chosen=val[k]; }
+    return chosen;
+  }
+  return '';
+}
+
+function calcProj(){
+  let total = 0;
+  ['SkiErg','SledPush','SledPull','BurpeeBJ','Row','FarmerCarry','Lunges','WallBalls'].forEach(k=>{ total += Math.round((S.benchmarks[k]||HK[k])*1.08); });
+  const runs = S.sessions.filter(s=>s.type==='Run'&&s.pace);
+  const pace = runs.length ? m2s(runs[runs.length-1].pace) : 295;
+  total += pace*8 + 300;
+  return total;
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────
+let curPage = 'dashboard';
+function goTo(page, btn){
+  document.querySelectorAll('[id^="pg-"]').forEach(el=>el.classList.add('hidden'));
+  document.getElementById('pg-'+page).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  curPage = page;
+  document.getElementById('main').scrollTop = 0;
+  if(page==='programme') renderProg();
+  if(page==='bench'){ renderBench(); renderProjBig(); }
+}
+
+// ── HEADER ────────────────────────────────────────────────────────────────
+function updateHeader(){
+  const d = days2race();
+  const w = curWeek();
+  const ph = phaseOf(w);
+  document.getElementById('hdr-countdown').textContent = d+' days · Hangzhou';
+  document.getElementById('hdr-phase').textContent = 'W'+w+' · '+ph;
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────
+function renderDash(){
+  document.getElementById('m-days').textContent = days2race();
+  const p = calcProj();
+  document.getElementById('m-proj').textContent = Math.floor(p/60)+':'+(p%60<10?'0':'')+(p%60);
+  const now = new Date(), mon = new Date(now); mon.setDate(now.getDate()-now.getDay()+1);
+  document.getElementById('m-week').textContent = S.sessions.filter(s=>new Date(s.date)>=mon).length;
+  renderPriorityGaps();
+  renderHRVStatus();
+  renderRadar();
+  renderHRVChart();
+}
+
+function renderPriorityGaps(){
+  const items = [
+    {n:'SkiErg',k:'SkiErg',tgt:250},{n:'Row',k:'Row',tgt:220},
+    {n:'Sled push',k:'SledPush',tgt:175},{n:'Burpee BJ',k:'BurpeeBJ',tgt:235},{n:'Lunges',k:'Lunges',tgt:240}
+  ];
+  document.getElementById('priority-gaps').innerHTML = items.map(it=>{
+    const curr = S.benchmarks[it.k]||HK[it.k];
+    const gap = curr - it.tgt;
+    const pf = Math.min(100,Math.round((it.tgt/curr)*100));
+    const cls = pf<60?'danger':pf<80?'warn':'';
+    return `<div class="priority-item">
+      <div class="priority-header"><span class="priority-name">${it.n}</span><span class="priority-gap">−${s2m(gap)}</span></div>
+      <div class="pbar"><div class="pbar-fill ${cls}" style="width:${pf}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderHRVStatus(){
+  const h = S.hrv.history;
+  const el = document.getElementById('hrv-status');
+  if(!h.length){ el.innerHTML=''; return; }
+  const recent = h.slice(-7).map(x=>x.val);
+  const avg7 = Math.round(recent.reduce((a,b)=>a+b,0)/recent.length);
+  const base = h.slice(0,-7).slice(-14);
+  const avgB = base.length ? Math.round(base.reduce((a,b)=>a+b.val,0)/base.length) : avg7;
+  const drop = Math.round((1-avg7/avgB)*100);
+  let cls='hrv-ok', msg=`HRV normal — 7-day avg: ${avg7}`;
+  if(drop>15){ cls='hrv-bad'; msg=`HRV down ${drop}% — reduce intensity today`; }
+  else if(drop>8){ cls='hrv-warn'; msg=`HRV slightly low (${drop}% drop) — monitor`; }
+  el.innerHTML = `<div class="hrv-alert ${cls}">${msg}</div>`;
+}
+
+let radarInst = null;
+function renderRadar(){
+  const ctx = document.getElementById('radarChart');
+  if(!ctx) return;
+  const labels = ['SkiErg','Sled push','Sled pull','Burpee BJ','Row','Farmer carry','Lunges','Wall balls'];
+  const keys = ['SkiErg','SledPush','SledPull','BurpeeBJ','Row','FarmerCarry','Lunges','WallBalls'];
+  const curr = keys.map(k=>Math.min(100,Math.round((TARGETS[k]/(S.benchmarks[k]||HK[k]))*100)));
+  if(radarInst) radarInst.destroy();
+  radarInst = new Chart(ctx,{type:'radar',data:{labels,datasets:[
+    {data:keys.map(()=>100),borderColor:'rgba(91,156,246,.3)',backgroundColor:'rgba(91,156,246,.05)',borderWidth:1,pointRadius:0},
+    {data:curr,borderColor:'#C8F135',backgroundColor:'rgba(200,241,53,.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#C8F135'},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,.06)'},pointLabels:{font:{size:9},color:'#666'}}}}});
+}
+
+let hrvInst = null;
+function renderHRVChart(){
+  const ctx = document.getElementById('hrvChart');
+  if(!ctx) return;
+  const h = S.hrv.history.slice(-14);
+  if(h.length<2) return;
+  if(hrvInst) hrvInst.destroy();
+  hrvInst = new Chart(ctx,{type:'line',data:{labels:h.map(x=>x.date.slice(5)),datasets:[{data:h.map(x=>x.val),borderColor:'#C8F135',borderWidth:1.5,pointRadius:0,fill:false,tension:.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+}
+
+function logHRV(){
+  const v = parseFloat(document.getElementById('hrv-in').value);
+  if(!v) return;
+  S.hrv.history.push({date:new Date().toISOString().slice(0,10),val:v});
+  saveS(); renderHRVStatus(); renderHRVChart();
+  document.getElementById('hrv-in').value='';
+}
+
+async function getCoachNote(){
+  const el = document.getElementById('coach-note');
+  el.textContent = 'Generating...';
+  const ctx = `HYROX athlete Jason Chuei, 45yo, open singles M45-49. 17 races. Best open 1:21:29 Taipei 2025. Most recent HK 2026 1:25:49. Key gaps: SkiErg top 87%, Row top 73%, Sled push top 78%, Run 8 collapse 6:25. Farmer carry elite top 23%. Target Hangzhou July 5 2026: 1:12–1:14. Benchmarks: ${JSON.stringify(S.benchmarks)}. Recent sessions (last 5): ${JSON.stringify(S.sessions.slice(-5).map(s=>({date:s.date,type:s.type,pace:s.pace,rpe:s.rpe,lifts:s.lifts,notes:s.notes})))}`;
+  try{
+    const r = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:'Elite HYROX coach. Give 3–4 sentences: terse, specific, actionable. Focus on the single highest-impact next action based on recent data. No preamble.',messages:[{role:'user',content:ctx}]})});
+    const d = await r.json();
+    el.textContent = d.content?.[0]?.text || 'Log more sessions for a personalised note.';
+  } catch { el.textContent = 'Connect to Claude for AI coaching notes.'; }
+}
+
+// ── PROGRAMME ─────────────────────────────────────────────────────────────
+function renderProg(){
+  const wk = parseInt(document.getElementById('wk-sel').value);
+  const venue = document.getElementById('venue-sel').value;
+  const ph = phaseOf(wk);
+  document.getElementById('prog-phase-badge').innerHTML = `<span class="badge" style="background:${phaseColor(ph)}22;color:${phaseColor(ph)}">Week ${wk} · ${ph}</span>`;
+  const container = document.getElementById('prog-days');
+  container.innerHTML = '';
+  const now = new Date().getDay();
+  const dayMap = {Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:0};
+
+  DAY_ORDER.forEach(dayKey=>{
+    const day = PROG[dayKey];
+    const isToday = dayMap[dayKey]===now;
+    const div = document.createElement('div');
+    div.className = 'day-card';
+    const primaryType = day.sessions[0].type;
+    const col = TYPE_COLORS[primaryType]||'#666';
+
+    let bodyHTML = '';
+    day.sessions.forEach((sess, si)=>{
+      if(sess.type==='Pre-coaching' && venue==='std') return;
+      const sessColor = TYPE_COLORS[sess.type]||'#666';
+      const exHTML = (sess.exs||[]).map(ex=>{
+        const det = getProgVal(ex.d, wk);
+        return `<div class="ex-item"><span class="ex-name">${ex.n}</span><span class="ex-detail ${det&&det.match(/kg|km|min/)?'ex-weight':''}">${det}</span></div>`;
+      }).join('');
+      bodyHTML += `<div class="session-block">
+        <div class="session-label" style="color:${sessColor}">${sess.label||''}</div>
+        <div class="session-title">${sess.title||''}</div>
+        ${exHTML}
+      </div>`;
+    });
+
+    div.innerHTML = `<div class="day-header" onclick="toggleDay('db-${dayKey}')">
+      <div class="day-tags">
+        <span class="day-name">${day.label}</span>
+        ${isToday?'<span class="badge b-accent" style="font-size:9px">TODAY</span>':''}
+        <span class="badge" style="background:${col}22;color:${col};font-size:9px">${primaryType}</span>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="day-body${isToday?' open':''}" id="db-${dayKey}">${bodyHTML}</div>`;
+    container.appendChild(div);
+  });
+}
+
+function toggleDay(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
+// ── LOG ───────────────────────────────────────────────────────────────────
+function openLogModal(){
+  document.getElementById('log-modal').classList.remove('hidden');
+  document.getElementById('l-date').value = new Date().toISOString().slice(0,10);
+  toggleFields();
+}
+function closeLogModal(){ document.getElementById('log-modal').classList.add('hidden'); }
+
+function toggleFields(){
+  const t = document.getElementById('l-type').value;
+  document.getElementById('f-run').style.display = (t==='Run'||t==='Compromised') ? 'block':'none';
+  document.getElementById('f-gym').classList.toggle('hidden', !(t==='Gym'||t==='F45'||t==='Pre-coaching'));
+  document.getElementById('f-stations').classList.toggle('hidden', !(t==='Race Sim'||t==='Compromised'));
+}
+
+function getStations(){
+  const map = {SkiErg:'s-ski',SledPush:'s-sp',SledPull:'s-sl',BurpeeBJ:'s-bbj',Row:'s-row',FarmerCarry:'s-fc',Lunges:'s-lu',WallBalls:'s-wb'};
+  const res = {};
+  Object.entries(map).forEach(([k,id])=>{ const v=document.getElementById(id)?.value; if(v) res[k]=m2s(v); });
+  return res;
+}
+
+function saveSession(){
+  const sess = {
+    id: Date.now().toString(),
+    date: document.getElementById('l-date').value,
+    type: document.getElementById('l-type').value,
+    runType: document.getElementById('l-run-type')?.value,
+    dist: document.getElementById('l-dist')?.value,
+    pace: document.getElementById('l-pace')?.value,
+    hr: document.getElementById('l-hr')?.value,
+    lifts: document.getElementById('l-lifts')?.value,
+    rpe: document.getElementById('l-rpe')?.value,
+    dur: document.getElementById('l-dur')?.value,
+    notes: document.getElementById('l-notes')?.value,
+    stations: getStations(),
+  };
+  S.sessions.push(sess);
+  Object.entries(sess.stations).forEach(([k,v])=>{ if(!S.benchmarks[k]||v<S.benchmarks[k]) S.benchmarks[k]=v; });
+  saveS();
+  closeLogModal();
+  renderLogList();
+  renderDash();
+  if(curPage==='bench'){ renderBench(); renderProjBig(); }
+  ['l-dist','l-pace','l-hr','l-lifts','l-rpe','l-dur','l-notes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['s-ski','s-sp','s-sl','s-bbj','s-row','s-fc','s-lu','s-wb'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function deleteSession(id){
+  S.sessions = S.sessions.filter(s=>s.id!==id);
+  saveS(); renderLogList(); renderDash();
+}
+
+function renderLogList(){
+  const el = document.getElementById('log-list');
+  if(!S.sessions.length){ el.innerHTML='<div style="color:var(--muted);font-size:13px">No sessions logged yet.</div>'; return; }
+  el.innerHTML = [...S.sessions].reverse().slice(0,30).map(s=>{
+    const col = TYPE_COLORS[s.type]||'#666';
+    const rpeCol = s.rpe>=8?'var(--red)':s.rpe>=6?'var(--amber)':'var(--green)';
+    return `<div class="log-item">
+      <div class="log-left">
+        <div class="log-type">
+          <span style="color:${col};font-weight:500">${s.type}</span>
+          ${s.runType?`<span style="color:var(--muted)">${s.runType}</span>`:''}
+          <span class="mono" style="font-size:10px;color:var(--muted)">${s.date}</span>
+        </div>
+        <div class="log-detail">
+          ${s.dist?`${s.dist}km`:''}${s.pace?` @ ${s.pace}/km`:''}${s.hr?` · HR ${s.hr}`:''}
+          ${s.lifts?s.lifts.slice(0,50)+(s.lifts.length>50?'…':''):''}
+          ${s.notes?` · ${s.notes.slice(0,40)}`:''}
+        </div>
+      </div>
+      <div class="log-right">
+        ${s.rpe?`<span class="badge" style="background:${rpeCol}22;color:${rpeCol}">RPE ${s.rpe}</span>`:''}
+        <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;border-radius:4px" onclick="deleteSession('${s.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RACES ─────────────────────────────────────────────────────────────────
+function renderRaces(){
+  // HK breakdown
+  const hkData = [
+    {n:'SkiErg',t:287,tgt:250,pct:87},{n:'Sled push',t:205,tgt:175,pct:78},
+    {n:'Sled pull',t:255,tgt:135,pct:36},{n:'Burpee BJ',t:331,tgt:235,pct:57},
+    {n:'Row',t:296,tgt:220,pct:73},{n:'Farmer carry',t:97,tgt:115,pct:23},
+    {n:'Lunges',t:345,tgt:240,pct:69},{n:'Wall balls',t:410,tgt:230,pct:54},
+  ];
+  document.getElementById('hk-breakdown').innerHTML = hkData.map(d=>{
+    const gap = d.t-d.tgt;
+    const col = d.pct>75?'var(--red)':d.pct>55?'var(--amber)':'var(--green)';
+    return `<div class="st-row">
+      <span class="st-name">${d.n}</span>
+      <span class="st-time">${s2m(d.t)}</span>
+      <span class="st-time" style="color:var(--muted)">${s2m(d.tgt)}</span>
+      <span class="st-pct" style="color:${col}">top ${d.pct}%</span>
+    </div>`;
+  }).join('');
+
+  // Run splits chart
+  const rsCtx = document.getElementById('runsChart');
+  if(rsCtx) new Chart(rsCtx,{type:'bar',data:{labels:['R1*','R2','R3','R4','R5','R6','R7','R8'],datasets:[{data:HK_RUNS.map(s=>+(s/60).toFixed(2)),backgroundColor:HK_RUNS.map((_,i)=>i===7?'#FF4D4D':i===0?'#FFB547':'rgba(200,241,53,.4)'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>s2m(HK_RUNS[v.dataIndex])}}},scales:{y:{ticks:{font:{size:9},callback:v=>v+'m'},grid:{color:'rgba(255,255,255,.04)'}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
+
+  // Open trend
+  const otCtx = document.getElementById('openTrendChart');
+  if(otCtx) new Chart(otCtx,{type:'line',data:{labels:OPEN_RACES.map(r=>r.l),datasets:[{data:OPEN_RACES.map(r=>+(r.s/60).toFixed(1)),borderColor:'#C8F135',backgroundColor:'rgba(200,241,53,.07)',borderWidth:2,pointBackgroundColor:'#C8F135',pointRadius:3,fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>s2m(OPEN_RACES[v.dataIndex].s)}}},scales:{y:{reverse:true,ticks:{font:{size:9},callback:v=>{const s=Math.round(v*60);return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60)}},grid:{color:'rgba(255,255,255,.04)'}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
+
+  // All races list
+  document.getElementById('all-races').innerHTML = ALL_RACES.map(r=>{
+    const divCol = r.div==='Open'?'var(--green)':r.div==='Relay'?'var(--blue)':'var(--muted)';
+    return `<div class="race-item">
+      <div class="race-left">
+        <div class="race-loc">${r.l} ${r.best?'<span class="badge b-accent" style="font-size:9px">Best open</span>':''}${r.latest?'<span class="badge b-blue" style="font-size:9px">Latest</span>':''}</div>
+        <div class="race-meta">
+          <span style="color:${divCol}">${r.div}</span>
+          <span>${r.d}</span>
+          <span>${r.r}</span>
+        </div>
+      </div>
+      <div class="race-time">${r.t}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── BENCHMARKS ────────────────────────────────────────────────────────────
+function renderProjBig(){
+  const p = calcProj();
+  document.getElementById('proj-big').textContent = Math.floor(p/60)+':'+(p%60<10?'0':'')+(p%60);
+}
+
+function renderBench(){
+  const data = [
+    {k:'SkiErg',n:'SkiErg (1000m)',tgt:250,pri:'High'},
+    {k:'Row',n:'Row (1000m)',tgt:220,pri:'High'},
+    {k:'SledPush',n:'Sled push',tgt:175,pri:'High'},
+    {k:'BurpeeBJ',n:'Burpee BJ',tgt:235,pri:'Med'},
+    {k:'Lunges',n:'Lunges (100m)',tgt:240,pri:'Med'},
+    {k:'WallBalls',n:'Wall balls',tgt:230,pri:'Med'},
+    {k:'SledPull',n:'Sled pull',tgt:135,pri:'Med'},
+    {k:'FarmerCarry',n:'Farmer carry',tgt:115,pri:'Low'},
+  ];
+  document.getElementById('bench-rows').innerHTML = data.map(d=>{
+    const curr = S.benchmarks[d.k]||HK[d.k];
+    const gap = curr-d.tgt;
+    const priCol = d.pri==='High'?'var(--red)':d.pri==='Med'?'var(--amber)':'var(--green)';
+    return `<div class="st-row" style="cursor:pointer" onclick="editBench('${d.k}','${d.n}',${curr})">
+      <div>
+        <div style="font-size:12px">${d.n}</div>
+        <div style="font-size:10px;color:${priCol}">${d.pri} priority</div>
+      </div>
+      <span class="st-time" style="color:var(--accent)">${s2m(curr)}</span>
+      <span class="st-time" style="color:var(--muted)">${s2m(d.tgt)}</span>
+      <span class="st-gap" style="color:${gap>0?'var(--red)':'var(--green)'}">${gap>0?'+':''}${s2m(Math.abs(gap))}</span>
+    </div>`;
+  }).join('');
+}
+
+function editBench(key, name, curr){
+  const v = prompt(`Update best for ${name}\nCurrent: ${s2m(curr)}\nEnter as m:ss:`);
+  if(!v) return;
+  const s = m2s(v);
+  if(!s) return;
+  S.benchmarks[key] = s;
+  saveS(); renderBench(); renderProjBig(); renderDash();
+}
+
+// ── SEED THIS WEEK'S SESSIONS ─────────────────────────────────────────────
+function seedWeekSessions(){
+  if(S.sessions.length > 0) return; // don't re-seed
+  const seeded = [
+    { id:'seed1', date:'2026-05-18', type:'Gym', runType:'', dist:'', pace:'', hr:'109', lifts:'Leg press 4×sets 44/51/58/58kg, Goblet squat 26kg + Farmer carry 30kg×30m ×4sets, Deadlift 50/60/60/60kg, Bulgarian SS 12kg×3sets, DB thrusters 9kg×4sets', rpe:'7', dur:'59', notes:'W1 intro — lighter weights, form focus. Leg press machine basic (narrow stance vertical). Building up.', stations:{} },
+    { id:'seed2', date:'2026-05-19', type:'Run', runType:'Long run', dist:'10.87', pace:'5:26', hr:'131', lifts:'', rpe:'6', dur:'59', notes:'Garmin base run. Low aerobic eval. Good Z2 long run, solid base.', stations:{} },
+    { id:'seed3', date:'2026-05-20', type:'F45', runType:'', dist:'', pace:'', hr:'122', lifts:'', rpe:'5', dur:'36', notes:'F45 Bears. Garmin eval: low aerobic — lighter day.', stations:{} },
+    { id:'seed4', date:'2026-05-21', type:'Compromised', runType:'', dist:'4', pace:'5:23', hr:'151', lifts:'', rpe:'8', dur:'22', notes:'5×800m treadmill (pace recorded for runs only) + cycle 2min sprint / BBJ 30r / barbell lunge 30r@20kg. @TIP.X Shibuya. Run pace ~4:18/km per 800m — strong but cap at 4:35 next session.', stations:{} },
+    { id:'seed5', date:'2026-05-21', type:'Gym', runType:'', dist:'', pace:'', hr:'116', lifts:'DB press 8×4@24kg, Close grip incline 8×4@18kg, Push-up to failure 20+18', rpe:'7', dur:'21', notes:'Chest finisher post compromised session.', stations:{} },
+  ];
+  S.sessions = seeded;
+  saveS();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+function init(){
+  loadS();
+  seedWeekSessions();
+  updateHeader();
+  renderDash();
+  renderLogList();
+  renderRaces();
+  document.getElementById('wk-sel').value = curWeek();
+  // default log date
+  document.getElementById('l-date').value = new Date().toISOString().slice(0,10);
+}
+
+init();
+</script>
+</body>
+</html>
