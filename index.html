@@ -625,11 +625,14 @@ const PROG = {
         {n:'HRV rule',d:'If recovery <50% → yoga only'},
       ]
     },
-    { type:'Pre-coaching', label:'Optional pre-coaching (Vamos)', title:'WB + lunge only',
+    { type:'Pre-coaching', label:'Optional — before Sunday coaching (F45 or Vamos sled)', title:'Sled / WB / Lunge — 15–25 min',
       exs:[
-        {n:'Wall balls',d:'2×20 unbroken @ 9kg — log max'},
-        {n:'Lunge',d:'2×20m @ 20kg controlled'},
-        {n:'Note',d:'Legs heavy from Saturday — no sled'},
+        {n:'When available',d:'F45 sled before coaching, or Vamos if en route'},
+        {n:'Option A — Sled only',d:'4×25m sled push @ 50kg + 4×25m pull, 60s rest'},
+        {n:'Option B — WB + Lunge',d:'3×30 wall balls (9kg) unbroken + 3×20m lunge (20kg) — log max unbroken WB'},
+        {n:'Option C — Combined',d:'2 rounds: sled push+pull → 10 WB → 20m lunge, 90s rest'},
+        {n:'Sunday rule',d:'Legs heavy from Saturday — Option B preferred. No sled if race sim day prior.'},
+        {n:'Log',d:'Record max unbroken wall balls each week — this is your WB benchmark'},
       ]
     }
   ]}
@@ -806,7 +809,8 @@ function renderProg(){
 
     let bodyHTML = '';
     day.sessions.forEach((sess, si)=>{
-      if(sess.type==='Pre-coaching' && venue==='std') return;
+      // Pre-coaching blocks always visible — Vamos from mid-June, F45 sled when available
+      if(false) return;
       const sessColor = TYPE_COLORS[sess.type]||'#666';
       const exHTML = (sess.exs||[]).map(ex=>{
         const det = getProgVal(ex.d, wk);
@@ -1013,6 +1017,8 @@ function seedWeekSessions(){
     { id:'seed3', date:'2026-05-20', type:'F45', runType:'', dist:'', pace:'', hr:'122', lifts:'', rpe:'5', dur:'36', notes:'F45 Bears. Garmin eval: low aerobic — lighter day.', stations:{} },
     { id:'seed4', date:'2026-05-21', type:'Compromised', runType:'', dist:'4', pace:'5:23', hr:'151', lifts:'', rpe:'8', dur:'22', notes:'5×800m treadmill (pace recorded for runs only) + cycle 2min sprint / BBJ 30r / barbell lunge 30r@20kg. @TIP.X Shibuya. Run pace ~4:18/km per 800m — strong but cap at 4:35 next session.', stations:{} },
     { id:'seed5', date:'2026-05-21', type:'Gym', runType:'', dist:'', pace:'', hr:'116', lifts:'DB press 8×4@24kg, Close grip incline 8×4@18kg, Push-up to failure 20+18', rpe:'7', dur:'21', notes:'Chest finisher post compromised session.', stations:{} },
+    { id:'seed6', date:'2026-05-22', type:'Gym', runType:'', dist:'', pace:'', hr:'100', lifts:'Plyo fwd hops 2×8/leg, Plyo side hops 2×8/leg, RDL 4×10@60kg, Farmer carry 30kg×150m (50+25+25+25+25m), Suitcase carry 30kg×25m×3/side, Nordic curl 3×8, Goblet squat 3×20@28kg, Seated row 4×15@56kg', rpe:'7', dur:'77', notes:'W1 Friday. No boxes — hops only. RDL build to 68kg next. Row 56kg → 62kg explosive next. Carry build to 32kg/hand.', stations:{} },
+    { id:'seed7', date:'2026-05-23', type:'Run', runType:'Intervals', dist:'9.04', pace:'5:04', hr:'155', lifts:'', rpe:'7', dur:'46', notes:'Komazawa progressive intervals. 100/200/100/200/500/500m fast efforts + sustained 1km laps. Fast efforts 4:15–4:27/km. Laps 15–16 @ 5:01–5:03/km. HR 155 avg. Top-end ceiling: 4:15–4:26 short burst. W1 complete — 7 sessions.', stations:{} },
   ];
   S.sessions = seeded;
   saveS();
