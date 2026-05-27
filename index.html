@@ -647,10 +647,10 @@ const TYPE_COLORS = { Run:'#5B9CF6', Gym:'#4ADE80', F45:'#FFB547', Compromised:'
 
 // ── STATE ─────────────────────────────────────────────────────────────────
 let S = { sessions:[], benchmarks:{...HK}, hrv:{history:[]}, newRaces:[] };
-function saveS(){ try{ localStorage.setItem('hachi_v2', JSON.stringify(S)); }catch{} }
+function saveS(){ try{ localStorage.setItem('hachi_v3', JSON.stringify(S)); }catch{} }
 function loadS(){
   try{
-    const d = localStorage.getItem('hachi_v2');
+    const d = localStorage.getItem('hachi_v3');
     if(d){ const p=JSON.parse(d); S.sessions=p.sessions||[]; S.benchmarks=p.benchmarks||{...HK}; S.hrv=p.hrv||{history:[]}; S.newRaces=p.newRaces||[]; }
   }catch{}
 }
@@ -1015,7 +1015,7 @@ function editBench(key, name, curr){
 
 // ── SEED THIS WEEK'S SESSIONS ─────────────────────────────────────────────
 function seedWeekSessions(){
-  if(S.sessions.length > 0) return; // don't re-seed
+  if(S.sessions.length >= 10) return; // don't re-seed if already up to date
   const seeded = [
     { id:'seed1', date:'2026-05-18', type:'Gym', runType:'', dist:'', pace:'', hr:'109', lifts:'Leg press 4×sets 44/51/58/58kg, Goblet squat 26kg + Farmer carry 30kg×30m ×4sets, Deadlift 50/60/60/60kg, Bulgarian SS 12kg×3sets, DB thrusters 9kg×4sets', rpe:'7', dur:'59', notes:'W1 intro — lighter weights, form focus. Leg press machine basic (narrow stance vertical). Building up.', stations:{} },
     { id:'seed2', date:'2026-05-19', type:'Run', runType:'Long run', dist:'10.87', pace:'5:26', hr:'131', lifts:'', rpe:'6', dur:'59', notes:'Garmin base run. Low aerobic eval. Good Z2 long run, solid base.', stations:{} },
