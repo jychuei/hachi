@@ -538,8 +538,12 @@ const PROG = {
     }
   ]},
   Wed:{ label:'Wednesday', sessions:[
-    { type:'F45', label:'Primary AM — Fixed 7:15', title:'F45 Cardio',
-      exs:[{n:'Session',d:'Cardio F45 — push all outputs'},{n:'Note',d:'Hardest AM of week metabolically'}]
+    { type:'F45', label:'Primary AM — Fixed 7:15', title:'F45 Cardio (Wed = cardio format)',
+      exs:[
+        {n:'Format',d:'Cardio with structured rest — HR ~120–130, low-moderate intensity'},
+        {n:'Role',d:'Active recovery + movement — bridges Tue run and Thu compromised'},
+        {n:'PM session',d:'Wednesday PM SkiErg/Row block is the real quality session today'},
+      ]
     },
     { type:'Gym', label:'Secondary PM (optional)', title:'SkiErg + Row specific block',
       exs:[
@@ -601,10 +605,11 @@ const PROG = {
     }
   ]},
   Sat:{ label:'Saturday', sessions:[
-    { type:'F45', label:'Primary AM — Fixed 9:30', title:'F45 Cardio',
+    { type:'F45', label:'Primary AM — Fixed 9:30', title:'F45 Hybrid (Sat = hybrid format)',
       exs:[
-        {n:'Odd weeks',d:'Full effort'},
-        {n:'Even weeks',d:'75% — preserve for PM race sim'},
+        {n:'Format',d:'Hybrid strength + cardio — higher HR and load than Wednesday'},
+        {n:'Odd weeks',d:'Full effort — quality hybrid session'},
+        {n:'Even weeks',d:'75% effort — preserve legs for PM race sim or intervals'},
         {n:'Pre-F45 option',d:'15–20 min easy Z2 from 9:10 if energy good'},
       ]
     },
@@ -1019,6 +1024,9 @@ function seedWeekSessions(){
     { id:'seed5', date:'2026-05-21', type:'Gym', runType:'', dist:'', pace:'', hr:'116', lifts:'DB press 8×4@24kg, Close grip incline 8×4@18kg, Push-up to failure 20+18', rpe:'7', dur:'21', notes:'Chest finisher post compromised session.', stations:{} },
     { id:'seed6', date:'2026-05-22', type:'Gym', runType:'', dist:'', pace:'', hr:'100', lifts:'Plyo fwd hops 2×8/leg, Plyo side hops 2×8/leg, RDL 4×10@60kg, Farmer carry 30kg×150m (50+25+25+25+25m), Suitcase carry 30kg×25m×3/side, Nordic curl 3×8, Goblet squat 3×20@28kg, Seated row 4×15@56kg', rpe:'7', dur:'77', notes:'W1 Friday. No boxes — hops only. RDL build to 68kg next. Row 56kg → 62kg explosive next. Carry build to 32kg/hand.', stations:{} },
     { id:'seed7', date:'2026-05-23', type:'Run', runType:'Intervals', dist:'9.04', pace:'5:04', hr:'155', lifts:'', rpe:'7', dur:'46', notes:'Komazawa progressive intervals. 100/200/100/200/500/500m fast efforts + sustained 1km laps. Fast efforts 4:15–4:27/km. Laps 15–16 @ 5:01–5:03/km. HR 155 avg. Top-end ceiling: 4:15–4:26 short burst. W1 complete — 7 sessions.', stations:{} },
+    { id:'seed8', date:'2026-05-25', type:'Gym', runType:'', dist:'', pace:'', hr:'106', lifts:'Depth drop→jump 10r, Smith squat 4×8@60kg, Smith DL 4×8@70kg, Stacked DB squat 4×20@2×14kg, Farmer carry 3×30m@30kg/hand, Bulgarian SS 3×10/side@2×8kg, DB thruster 3×15@2×10kg, Dead hang 55+40+20+20s', rpe:'7', dur:'89', notes:'W2 Monday. Smith machine — L5-S1 bulging disc. No box. Depth drop from floor. Progressive: Smith squat to 65kg, DL to 75kg next session. Dead hang 55s first set.', stations:{} },
+    { id:'seed9', date:'2026-05-26', type:'Run', runType:'Easy', dist:'8.51', pace:'5:21', hr:'158', lifts:'', rpe:'7', dur:'46', notes:'Komazawa base. Heavy legs post Monday leg session. HR 158 at 5:21 vs HR 131 at 5:26 in W1 — 27bpm higher, normal fatigue response. Legs recovering for Thursday compromised.', stations:{} },
+    { id:'seed10', date:'2026-05-27', type:'F45', runType:'', dist:'', pace:'', hr:'125', lifts:'', rpe:'6', dur:'38', notes:'F45: 22. Cardio format with structured rest. HR 125 avg — low aerobic eval. Active recovery role between Tue run and Thu compromised. PM SkiErg/Row block is the quality session today.', stations:{} },
   ];
   S.sessions = seeded;
   saveS();
