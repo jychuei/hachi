@@ -1015,7 +1015,7 @@ function editBench(key, name, curr){
 
 // ── SEED THIS WEEK'S SESSIONS ─────────────────────────────────────────────
 function seedWeekSessions(){
-  if(S.sessions.length >= 10) return; // don't re-seed if already up to date
+  if(S.sessions.length >= 11) return; // don't re-seed if already up to date
   const seeded = [
     { id:'seed1', date:'2026-05-18', type:'Gym', runType:'', dist:'', pace:'', hr:'109', lifts:'Leg press 4×sets 44/51/58/58kg, Goblet squat 26kg + Farmer carry 30kg×30m ×4sets, Deadlift 50/60/60/60kg, Bulgarian SS 12kg×3sets, DB thrusters 9kg×4sets', rpe:'7', dur:'59', notes:'W1 intro — lighter weights, form focus. Leg press machine basic (narrow stance vertical). Building up.', stations:{} },
     { id:'seed2', date:'2026-05-19', type:'Run', runType:'Long run', dist:'10.87', pace:'5:26', hr:'131', lifts:'', rpe:'6', dur:'59', notes:'Garmin base run. Low aerobic eval. Good Z2 long run, solid base.', stations:{} },
@@ -1027,6 +1027,7 @@ function seedWeekSessions(){
     { id:'seed8', date:'2026-05-25', type:'Gym', runType:'', dist:'', pace:'', hr:'106', lifts:'Depth drop→jump 10r, Smith squat 4×8@60kg, Smith DL 4×8@70kg, Stacked DB squat 4×20@2×14kg, Farmer carry 3×30m@30kg/hand, Bulgarian SS 3×10/side@2×8kg, DB thruster 3×15@2×10kg, Dead hang 55+40+20+20s', rpe:'7', dur:'89', notes:'W2 Monday. Smith machine — L5-S1 bulging disc. No box. Depth drop from floor. Progressive: Smith squat to 65kg, DL to 75kg next session. Dead hang 55s first set.', stations:{} },
     { id:'seed9', date:'2026-05-26', type:'Run', runType:'Easy', dist:'8.51', pace:'5:21', hr:'158', lifts:'', rpe:'7', dur:'46', notes:'Komazawa base. Heavy legs post Monday leg session. HR 158 at 5:21 vs HR 131 at 5:26 in W1 — 27bpm higher, normal fatigue response. Legs recovering for Thursday compromised.', stations:{} },
     { id:'seed10', date:'2026-05-27', type:'F45', runType:'', dist:'', pace:'', hr:'125', lifts:'', rpe:'6', dur:'38', notes:'F45: 22. Cardio format with structured rest. HR 125 avg — low aerobic eval. Active recovery role between Tue run and Thu compromised. PM SkiErg/Row block is the quality session today.', stations:{} },
+    { id:'seed11', date:'2026-05-28', type:'Compromised', runType:'', dist:'4.8', pace:'5:44', hr:'142', lifts:'', rpe:'9', dur:'70', notes:'W2 Thu. Renaissance Shinjuku 24. 6×800m runs + stations: row 500m / sled push 150kg×40m / sled pull+push 150kg / lunges 20kg×40m / row 500m / wall balls 6kg×100r. Run splits: 5:25→5:28→5:54→5:54→6:01→6:01/km. Total run time 27:26. Row 2:09/500m both rounds consistent. WB 7:21 fatigued (race weight). Sled finisher 150kg pull+100kg push arms only. Best session of programme.', stations:{FarmerCarry:97,Row:129,Lunges:133,WallBalls:441} },
   ];
   S.sessions = seeded;
   saveS();
