@@ -330,17 +330,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
         <div class="card">
           <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
             <span>Races</span>
-            <button class="btn btn-sm" onclick="document.getElementById('race-form').style.display=document.getElementById('race-form').style.display==='none'?'block':'none'" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid #333;background:#141414;color:#C8F135">+ Add race</button>
+            <button class="btn btn-sm" onclick="document.getElementById('race-form').style.display=document.getElementById('race-form').style.display==='none'?'block':'none'" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid #333;background:#141414;color:#C8F135">+ Import race</button>
           </div>
           <div id="race-form" style="display:none;margin-bottom:12px">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-              <input type="date" id="rf-date" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
-              <select id="rf-cat" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px"><option>Open</option><option>Pro</option><option>Doubles</option><option>Relay</option></select>
-              <input type="text" id="rf-loc" placeholder="Location" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
-              <input type="text" id="rf-time" placeholder="Total h:mm:ss" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
-              <input type="text" id="rf-rank" placeholder="Rank #" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="addRace()" style="width:100%">Save race</button>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Paste a hyresult.com result URL — pulls total, station splits + percentiles.</div>
+            <input type="text" id="rf-url" placeholder="https://www.hyresult.com/result/..." style="width:100%;padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px;margin-bottom:8px">
+            <button class="btn btn-primary btn-sm" onclick="importHyresult()" style="width:100%">Import</button>
+            <div id="rf-msg" style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;min-height:14px"></div>
           </div>
           <div id="all-races"></div>
         </div>
@@ -1150,27 +1146,38 @@ function renderGroup(){
     hm.innerHTML=hdr+rows;
   }
 }
-async function addRace(){
-  const date=document.getElementById('rf-date').value;
-  const cat=document.getElementById('rf-cat').value;
-  const loc=document.getElementById('rf-loc').value.trim();
-  const tStr=document.getElementById('rf-time').value.trim();
-  const rank=document.getElementById('rf-rank').value.trim();
-  if(!date||!loc||!tStr){alert('Date, location, total time required');return;}
-  const p=tStr.split(':').map(Number);
-  const total=p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:NaN;
-  if(isNaN(total)){alert('Time format h:mm:ss');return;}
-  const row={user_id:UID,date,location:loc,category:cat,total_sec:total,rank:rank?(rank[0]==='#'?rank:'#'+rank):null};
-  const {data,error}=await sb.from('races').insert(row).select();
-  if(error){alert('Save failed: '+error.message);return;}
-  S.races=[...(S.races||[]),...(data||[row])];
-  document.getElementById('race-form').style.display='none';
-  ['rf-loc','rf-time','rf-rank'].forEach(id=>document.getElementById(id).value='');
-  renderRaces(); renderDash(); updateHeader();
+async function importHyresult(){
+  const msg=document.getElementById('rf-msg');
+  const url=document.getElementById('rf-url').value.trim();
+  if(!/hyresult\.com\/result\//.test(url)){msg.textContent='Paste a hyresult result URL';return;}
+  msg.textContent='Fetching…';
+  try{
+    const {data,error}=await sb.functions.invoke('hyresult',{body:{url}});
+    if(error||!data||!data.total_sec){msg.textContent='Could not parse that race';return;}
+    const row={user_id:UID,date:data.date||new Date().toISOString().slice(0,10),location:data.location||'Race',category:data.category||'Open',total_sec:data.total_sec,rank:data.rank||null,station_times:data.station_times||null,run_splits:data.run_splits||null};
+    const {data:ins}=await sb.from('races').insert(row).select();
+    S.races=[...(S.races||[]),...(ins||[row])];
+    if(data.station_times&&data.station_times.length){
+      const bm=data.station_times.filter(s=>s.k&&s.t).map(s=>({user_id:UID,station:s.k,best_sec:s.t}));
+      if(bm.length) await sb.from('benchmarks').upsert(bm);
+      data.station_times.forEach(s=>{if(s.k&&s.t&&(S.benchmarks[s.k]==null||s.t<S.benchmarks[s.k]))S.benchmarks[s.k]=s.t;});
+    }
+    document.getElementById('rf-url').value='';
+    document.getElementById('race-form').style.display='none';
+    renderRaces(); renderDash(); updateHeader();
+  }catch(e){msg.textContent='Import failed: '+e.message;}
 }
 const EQUIP_KEYS=[['ski','SkiErg'],['row','Row erg'],['sled','Sled'],['wallball','Wall ball'],['barbell','Barbell'],['dumbbell','Dumbbells'],['treadmill','Treadmill']];
 function _hms2(x){if(x==null)return '';return Math.floor(x/3600)+':'+String(Math.floor(x%3600/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');}
 function _ms2(v){const p=String(v||'').split(':').map(Number);return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:null;}
+function toggleEq(k){
+  const el=document.getElementById('eqc-'+k); if(!el)return;
+  const on=el.dataset.on!=='1'; el.dataset.on=on?'1':'0';
+  const box=el.querySelector('.eqbox');
+  box.style.border='2px solid '+(on?'#C8F135':'#444');
+  box.style.background=on?'#C8F135':'transparent';
+  box.textContent=on?'\u2713':'';
+}
 function renderSettings(){
   const p=S.profile||{};
   document.getElementById('set-name').value=p.display_name||'';
@@ -1183,7 +1190,7 @@ function renderSettings(){
   document.getElementById('set-dl').value=p.deadlift_1rm_kg||'';
   document.getElementById('set-sq').value=p.squat_1rm_kg||'';
   const eq=p.equipment||{};
-  document.getElementById('set-equip').innerHTML=EQUIP_KEYS.map(([k,lbl])=>`<label style="display:flex;align-items:center;gap:10px;padding:10px;background:#141414;border-radius:8px;cursor:pointer"><input type="checkbox" id="eq-${k}" ${eq[k]?'checked':''} style="width:18px;height:18px;accent-color:#C8F135;flex:0 0 auto"><span style="font-size:13px">${lbl}</span></label>`).join('');
+  document.getElementById('set-equip').innerHTML=EQUIP_KEYS.map(([k,lbl])=>`<div id="eqc-${k}" onclick="toggleEq('${k}')" data-on="${eq[k]?1:0}" style="display:flex;align-items:center;gap:10px;padding:11px;background:#141414;border-radius:8px;cursor:pointer;user-select:none"><span class="eqbox" style="width:20px;height:20px;border-radius:5px;border:2px solid ${eq[k]?'#C8F135':'#444'};background:${eq[k]?'#C8F135':'transparent'};display:flex;align-items:center;justify-content:center;color:#0A0A0A;font-size:13px;font-weight:700;flex:0 0 auto">${eq[k]?'✓':''}</span><span style="font-size:13px">${lbl}</span></div>`).join('');
   const sch=p.schedule||{};
   document.getElementById('set-schedule').innerHTML=DAY_ORDER.map(dk=>{
     const cur=sch[dk]||{};
@@ -1194,7 +1201,7 @@ function renderSettings(){
 }
 async function saveSettings(){
   const msg=document.getElementById('set-msg');
-  const eq={}; EQUIP_KEYS.forEach(([k])=>eq[k]=document.getElementById('eq-'+k).checked);
+  const eq={}; EQUIP_KEYS.forEach(([k])=>{const el=document.getElementById('eqc-'+k);eq[k]=el?el.dataset.on==='1':false;});
   const sch={}; DAY_ORDER.forEach(dk=>{const am=document.getElementById('sc-'+dk+'-am').value;const pm=document.getElementById('sc-'+dk+'-pm').value;if(am){sch[dk]={am};if(pm)sch[dk].pm=pm;}});
   const five=document.getElementById('set-5k').value.trim();
   const fivePB=five?(()=>{const p=five.split(':').map(Number);return p.length===2?p[0]*60+p[1]:null;})():null;
@@ -1260,7 +1267,7 @@ function renderRaces(){
   if(ot&&st.openTrend.length){if(window._otC)window._otC.destroy();
     window._otC=new Chart(ot,{type:'line',data:{labels:st.openTrend.map(r=>r.l),datasets:[{data:st.openTrend.map(r=>+(r.s/60).toFixed(1)),borderColor:'#C8F135',backgroundColor:'rgba(200,241,53,.07)',borderWidth:2,pointBackgroundColor:'#C8F135',pointRadius:3,fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>s2m(st.openTrend[v.dataIndex].s)}}},scales:{y:{reverse:true,ticks:{font:{size:9},callback:v=>{const x=Math.round(v*60);return Math.floor(x/60)+':'+(x%60<10?'0':'')+(x%60)}},grid:{color:'rgba(255,255,255,.04)'}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});}
   const list=document.getElementById('all-races');
-  if(list){const R=(S.races||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(list){const R=(S.races||[]).slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
     if(!R.length){list.innerHTML='<div style="opacity:.5;font-size:13px;padding:16px;text-align:center">No races yet. Add your HYROX results to see history.</div>';return;}
     const bId=st.bestOpen&&st.bestOpen.id,lId=st.latest&&st.latest.id;
     list.innerHTML=R.map(r=>{const dc=/open/i.test(r.category)?'var(--green)':/relay/i.test(r.category)?'var(--blue)':'var(--muted)';return `<div class="race-item"><div class="race-left"><div class="race-loc">${r.location} ${r.id===bId?'<span class="badge b-accent" style="font-size:9px">Best open</span>':''}${r.id===lId?'<span class="badge b-blue" style="font-size:9px">Latest</span>':''}</div><div class="race-meta"><span style="color:${dc}">${r.category}</span><span>${_mon(r.date)}</span><span>${r.rank||''}</span></div></div><div class="race-time">${_hms(r.total_sec)}</div></div>`;}).join('');}
