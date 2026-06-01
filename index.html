@@ -1160,7 +1160,8 @@ async function importHyresult(){
   msg.textContent='Fetching…';
   try{
     const {data,error}=await sb.functions.invoke('hyresult',{body:{url}});
-    if(error||!data||!data.total_sec){msg.textContent='Could not parse that race';return;}
+    if(error){msg.textContent='fn error: '+(error.message||JSON.stringify(error));return;}
+    if(!data||!data.total_sec){msg.textContent='parsed but no total: '+JSON.stringify(data).slice(0,80);return;}
     const row={user_id:UID,date:data.date||new Date().toISOString().slice(0,10),location:data.location||'Race',category:data.category||'Open',total_sec:data.total_sec,rank:data.rank||null,station_times:data.station_times||null,run_splits:data.run_splits||null};
     const {data:ins}=await sb.from('races').insert(row).select();
     S.races=[...(S.races||[]),...(ins||[row])];
