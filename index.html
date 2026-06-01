@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="HACHI">
 <meta name="theme-color" content="#0A0A0A">
-<title>HACHI — Jason Chuei</title>
+<title>HACHI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -191,9 +191,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
       </div>
     </div>
     <div class="header-badges">
-      <span class="badge b-accent">Jason Chuei</span>
-      <span class="badge b-gray">Open M45-49</span>
-      <span class="badge b-blue">Target 1:12–1:14</span>
+      <span class="badge b-accent" id="hdr-name">Athlete</span>
+      <span class="badge b-gray" id="hdr-div">—</span>
+      <span class="badge b-blue" id="hdr-target">—</span>
     </div>
   </div>
 
@@ -204,9 +204,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
       <div id="pg-dashboard">
         <div class="metrics-grid">
           <div class="metric-box">
-            <div class="metric-label">Days to Hangzhou</div>
+            <div class="metric-label" id="m-days-label">Days to race</div>
             <div class="metric-value" id="m-days">—</div>
-            <div class="metric-sub">July 5, 2026</div>
+            <div class="metric-sub" id="m-days-sub">—</div>
           </div>
           <div class="metric-box">
             <div class="metric-label">Projected finish</div>
@@ -215,8 +215,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
           </div>
           <div class="metric-box">
             <div class="metric-label">Best open</div>
-            <div class="metric-value" style="font-size:22px;color:var(--text)">1:21:29</div>
-            <div class="metric-sub">Taipei 2025</div>
+            <div class="metric-value" style="font-size:22px;color:var(--text)" id="m-bestopen">—</div>
+            <div class="metric-sub" id="m-bestopen-sub">—</div>
           </div>
           <div class="metric-box">
             <div class="metric-label">This week</div>
@@ -291,13 +291,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
         <div class="section-header">Race Analysis</div>
 
         <div class="metrics-grid" style="grid-template-columns:1fr 1fr 1fr">
-          <div class="metric-box"><div class="metric-label">Races</div><div class="metric-value" style="color:var(--text)">17</div></div>
-          <div class="metric-box"><div class="metric-label">Best open</div><div class="metric-value" style="font-size:18px">1:21:29</div></div>
-          <div class="metric-box"><div class="metric-label">Best AG</div><div class="metric-value" style="color:var(--text)">#15</div><div class="metric-sub">Wuhan relay</div></div>
+          <div class="metric-box"><div class="metric-label">Races</div><div class="metric-value" style="color:var(--text)" id="race-count">0</div></div>
+          <div class="metric-box"><div class="metric-label">Best open</div><div class="metric-value" style="font-size:18px" id="race-bestopen">—</div></div>
+          <div class="metric-box"><div class="metric-label">Best AG</div><div class="metric-value" style="color:var(--text)" id="race-bestag">—</div><div class="metric-sub" id="race-bestag-sub">—</div></div>
         </div>
 
         <div class="card">
-          <div class="card-title">HK 2026 — station breakdown</div>
+          <div class="card-title">Featured race — station breakdown</div>
           <div style="display:grid;grid-template-columns:1fr 52px 52px 52px;gap:4px;padding:4px 0;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)">
             <span>Station</span><span style="text-align:center">Time</span><span style="text-align:center">Target</span><span style="text-align:center">Pctile</span>
           </div>
@@ -305,7 +305,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
         </div>
 
         <div class="card">
-          <div class="card-title">HK 2026 — run splits</div>
+          <div class="card-title">Featured race — run splits</div>
           <div class="chart-wrap" style="height:160px"><canvas id="runsChart" role="img" aria-label="Run splits bar chart">8 run split times.</canvas></div>
           <div style="font-size:11px;color:var(--red);margin-top:6px">Run 8: 6:25 — durability target #1</div>
         </div>
@@ -328,7 +328,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
           <div class="proj-display">
             <div class="proj-time" id="proj-big">—</div>
             <div class="proj-label">Projected finish</div>
-            <div class="proj-target">Target: 1:12–1:14 · Best open: 1:21:29</div>
+            <div class="proj-target" id="proj-target">—</div>
           </div>
         </div>
         <div class="card">
@@ -471,33 +471,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────
 const RACE_DATE = new Date('2026-07-05');
-const HK = { SkiErg:287, SledPush:205, SledPull:255, BurpeeBJ:331, Row:296, FarmerCarry:97, Lunges:345, WallBalls:410 };
 const TARGETS = { SkiErg:250, SledPush:175, SledPull:135, BurpeeBJ:235, Row:220, FarmerCarry:115, Lunges:240, WallBalls:230 };
-const HK_PCTS = { SkiErg:87, SledPush:78, SledPull:36, BurpeeBJ:57, Row:73, FarmerCarry:23, Lunges:69, WallBalls:54 };
-const HK_RUNS = [231,267,266,274,282,282,288,385];
-const OPEN_RACES = [
-  {l:'HK 24',s:5360},{l:'Taipei',s:4889},{l:'Asia Chp',s:6088},
-  {l:'Bkk 25',s:4412},{l:'Beijing',s:5077},{l:'Bkk 26',s:5015},{l:'HK 26',s:5149}
-];
-const ALL_RACES = [
-  {d:'Nov 2024',l:'Hong Kong',div:'Open',t:'1:29:20',r:'#412'},
-  {d:'Jan 2025',l:'Shanghai',div:'Pro',t:'1:48:30',r:'#133'},
-  {d:'Feb 2025',l:'Taipei',div:'Open',t:'1:21:29',r:'#117',best:1},
-  {d:'Feb 2025',l:'Bangkok',div:'Doubles',t:'1:17:49',r:'#78'},
-  {d:'Mar 2025',l:'Incheon',div:'Pro',t:'1:34:14',r:'#90'},
-  {d:'Mar 2025',l:'Asia Champs',div:'Open',t:'1:41:28',r:'#818'},
-  {d:'Mar 2025',l:'Bangkok',div:'Open',t:'1:23:32',r:'#219'},
-  {d:'Mar 2025',l:'New Delhi',div:'Pro',t:'1:34:04',r:'#24'},
-  {d:'Apr 2025',l:'Yokohama',div:'Pro',t:'1:36:38',r:'#136'},
-  {d:'Apr 2025',l:'Beijing',div:'Open',t:'1:24:37',r:'#170'},
-  {d:'Nov 2025',l:'Melbourne',div:'Pro',t:'1:28:56',r:'#549'},
-  {d:'Jan 2026',l:'Osaka',div:'Pro',t:'1:31:39',r:'#193'},
-  {d:'Jan 2026',l:'Taipei',div:'Pro',t:'1:31:42',r:'#115'},
-  {d:'Feb 2026',l:'Bangkok',div:'Open',t:'1:23:35',r:'#614'},
-  {d:'Mar 2026',l:'Wuhan',div:'Pro',t:'1:33:19',r:'#62'},
-  {d:'Mar 2026',l:'Wuhan',div:'Relay',t:'1:08:05',r:'#15'},
-  {d:'May 2026',l:'Hong Kong',div:'Open',t:'1:25:49',r:'#559',latest:1},
-];
 
 // ── PROGRAMME DATA ────────────────────────────────────────────────────────
 const PROG = {
@@ -656,20 +630,20 @@ const DAY_ORDER = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const TYPE_COLORS = { Run:'#5B9CF6', Gym:'#4ADE80', F45:'#FFB547', Compromised:'#FF6B9D', 'Pre-coaching':'#BF5AF2', Recovery:'#666', 'Race Sim':'#C8F135' };
 
 // ── STATE ─────────────────────────────────────────────────────────────────
-let S = { sessions:[], benchmarks:{...HK}, hrv:{history:[]}, newRaces:[] };
+const S = { sessions:[], benchmarks:{}, hrv:{history:[]}, newRaces:[], races:[], profile:{} };
 function saveS(){ try{ localStorage.setItem('hachi_v3', JSON.stringify(S)); }catch{} }
 function loadS(){
   try{
     const d = localStorage.getItem('hachi_v3');
-    if(d){ const p=JSON.parse(d); S.sessions=p.sessions||[]; S.benchmarks=p.benchmarks||{...HK}; S.hrv=p.hrv||{history:[]}; S.newRaces=p.newRaces||[]; }
+    if(d){ const p=JSON.parse(d); S.sessions=p.sessions||[]; S.benchmarks=p.benchmarks||{}; S.races=p.races||[]; S.profile=p.profile||{}; S.hrv=p.hrv||{history:[]}; S.newRaces=p.newRaces||[]; }
   }catch{}
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────
 const s2m = s => { const m=Math.floor(s/60),ss=s%60; return m+':'+(ss<10?'0':'')+ss; };
 const m2s = str => { if(!str||!str.includes(':'))return 0; const[m,s]=str.split(':'); return parseInt(m||0)*60+parseInt(s||0); };
-const days2race = () => Math.max(0, Math.ceil((RACE_DATE - new Date())/86400000));
-const curWeek = () => Math.max(1, Math.min(13, Math.ceil((new Date()-new Date('2026-05-18'))/604800000)+1));
+const days2race = () => { const rd=(S.profile&&S.profile.target_race_date)?new Date(S.profile.target_race_date):RACE_DATE; return Math.max(0, Math.ceil((rd-new Date())/86400000)); };
+const curWeek = () => { const ps=(S.profile&&S.profile.programme_start)?new Date(S.profile.programme_start):new Date('2026-05-18'); return Math.max(1, Math.min(13, Math.ceil((new Date()-ps)/604800000)+1)); };
 const phaseOf = w => w<=3?'Base':w===4?'Deload':w<=7?'Threshold':w===8?'Deload':w<=11?'Race Specific':w===12?'Deload':'Taper';
 const phaseColor = p => ({Base:'#5B9CF6',Deload:'#FFB547',Threshold:'#C8F135','Race Specific':'#FF6B9D',Peak:'#BF5AF2',Taper:'#FF9500'}[p]||'#666');
 
@@ -685,12 +659,12 @@ function getProgVal(val, wk){
 }
 
 function calcProj(){
-  let total = 0;
-  ['SkiErg','SledPush','SledPull','BurpeeBJ','Row','FarmerCarry','Lunges','WallBalls'].forEach(k=>{ total += Math.round((S.benchmarks[k]||HK[k])*1.08); });
-  const runs = S.sessions.filter(s=>s.type==='Run'&&s.pace);
-  const pace = runs.length ? m2s(runs[runs.length-1].pace) : 295;
-  total += pace*8 + 300;
-  return total;
+  const KS=['SkiErg','SledPush','SledPull','BurpeeBJ','Row','FarmerCarry','Lunges','WallBalls'];
+  if(!KS.every(k=>S.benchmarks[k])) return null;
+  let total=0; KS.forEach(k=>{total+=Math.round(S.benchmarks[k]*1.08);});
+  const runs=S.sessions.filter(s=>s.type==='Run'&&s.pace);
+  const pace=runs.length?m2s(runs[runs.length-1].pace):295;
+  return total+pace*8+300;
 }
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────
@@ -708,40 +682,30 @@ function goTo(page, btn){
 
 // ── HEADER ────────────────────────────────────────────────────────────────
 function updateHeader(){
-  const d = days2race();
-  const w = curWeek();
-  const ph = phaseOf(w);
-  document.getElementById('hdr-countdown').textContent = d+' days · Hangzhou';
-  document.getElementById('hdr-phase').textContent = 'W'+w+' · '+ph;
+  const d=days2race(),w=curWeek(),ph=phaseOf(w);
+  const rn=(S.profile&&S.profile.target_race_name)||'race';
+  document.getElementById('hdr-countdown').textContent=d+' days \u00b7 '+rn;
+  document.getElementById('hdr-phase').textContent='W'+w+' \u00b7 '+ph;
+  applyProfile();
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
 function renderDash(){
-  document.getElementById('m-days').textContent = days2race();
-  const p = calcProj();
-  document.getElementById('m-proj').textContent = Math.floor(p/60)+':'+(p%60<10?'0':'')+(p%60);
-  const now = new Date(), mon = new Date(now); mon.setDate(now.getDate()-now.getDay()+1);
-  document.getElementById('m-week').textContent = S.sessions.filter(s=>new Date(s.date)>=mon).length;
-  renderPriorityGaps();
-  renderHRVStatus();
-  renderRadar();
-  renderHRVChart();
+  document.getElementById('m-days').textContent=days2race();
+  const p=calcProj();
+  document.getElementById('m-proj').textContent=p?(Math.floor(p/60)+':'+(p%60<10?'0':'')+(p%60)):'\u2014';
+  const now=new Date(),mon=new Date(now);mon.setDate(now.getDate()-now.getDay()+1);
+  document.getElementById('m-week').textContent=S.sessions.filter(s=>new Date(s.date)>=mon).length;
+  renderPriorityGaps();renderHRVStatus();renderRadar();renderHRVChart();
 }
 
 function renderPriorityGaps(){
-  const items = [
-    {n:'SkiErg',k:'SkiErg',tgt:250},{n:'Row',k:'Row',tgt:220},
-    {n:'Sled push',k:'SledPush',tgt:175},{n:'Burpee BJ',k:'BurpeeBJ',tgt:235},{n:'Lunges',k:'Lunges',tgt:240}
-  ];
-  document.getElementById('priority-gaps').innerHTML = items.map(it=>{
-    const curr = S.benchmarks[it.k]||HK[it.k];
-    const gap = curr - it.tgt;
-    const pf = Math.min(100,Math.round((it.tgt/curr)*100));
-    const cls = pf<60?'danger':pf<80?'warn':'';
-    return `<div class="priority-item">
-      <div class="priority-header"><span class="priority-name">${it.n}</span><span class="priority-gap">−${s2m(gap)}</span></div>
-      <div class="pbar"><div class="pbar-fill ${cls}" style="width:${pf}%"></div></div>
-    </div>`;
+  const items=[{n:'SkiErg',k:'SkiErg',tgt:250},{n:'Row',k:'Row',tgt:220},{n:'Sled push',k:'SledPush',tgt:175},{n:'Burpee BJ',k:'BurpeeBJ',tgt:235},{n:'Lunges',k:'Lunges',tgt:240}];
+  document.getElementById('priority-gaps').innerHTML=items.map(it=>{
+    const curr=S.benchmarks[it.k];
+    if(curr==null)return `<div class="priority-item"><div class="priority-header"><span class="priority-name">${it.n}</span><span class="priority-gap">\u2014</span></div><div class="pbar"><div class="pbar-fill" style="width:0%"></div></div></div>`;
+    const gap=curr-it.tgt,pf=Math.min(100,Math.round((it.tgt/curr)*100)),cls=pf<60?'danger':pf<80?'warn':'';
+    return `<div class="priority-item"><div class="priority-header"><span class="priority-name">${it.n}</span><span class="priority-gap">\u2212${s2m(Math.max(0,gap))}</span></div><div class="pbar"><div class="pbar-fill ${cls}" style="width:${pf}%"></div></div></div>`;
   }).join('');
 }
 
@@ -762,16 +726,12 @@ function renderHRVStatus(){
 
 let radarInst = null;
 function renderRadar(){
-  const ctx = document.getElementById('radarChart');
-  if(!ctx) return;
-  const labels = ['SkiErg','Sled push','Sled pull','Burpee BJ','Row','Farmer carry','Lunges','Wall balls'];
-  const keys = ['SkiErg','SledPush','SledPull','BurpeeBJ','Row','FarmerCarry','Lunges','WallBalls'];
-  const curr = keys.map(k=>Math.min(100,Math.round((TARGETS[k]/(S.benchmarks[k]||HK[k]))*100)));
-  if(radarInst) radarInst.destroy();
-  radarInst = new Chart(ctx,{type:'radar',data:{labels,datasets:[
-    {data:keys.map(()=>100),borderColor:'rgba(91,156,246,.3)',backgroundColor:'rgba(91,156,246,.05)',borderWidth:1,pointRadius:0},
-    {data:curr,borderColor:'#C8F135',backgroundColor:'rgba(200,241,53,.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#C8F135'},
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,.06)'},pointLabels:{font:{size:9},color:'#666'}}}}});
+  const ctx=document.getElementById('radarChart');if(!ctx)return;
+  const labels=['SkiErg','Sled push','Sled pull','Burpee BJ','Row','Farmer carry','Lunges','Wall balls'];
+  const keys=['SkiErg','SledPush','SledPull','BurpeeBJ','Row','FarmerCarry','Lunges','WallBalls'];
+  const curr=keys.map(k=>S.benchmarks[k]?Math.min(100,Math.round((TARGETS[k]/S.benchmarks[k])*100)):0);
+  if(radarInst)radarInst.destroy();
+  radarInst=new Chart(ctx,{type:'radar',data:{labels,datasets:[{data:keys.map(()=>100),borderColor:'rgba(91,156,246,.3)',backgroundColor:'rgba(91,156,246,.05)',borderWidth:1,pointRadius:0},{data:curr,borderColor:'#C8F135',backgroundColor:'rgba(200,241,53,.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#C8F135'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false,stepSize:25},grid:{color:'rgba(255,255,255,.06)'},angleLines:{color:'rgba(255,255,255,.06)'},pointLabels:{font:{size:9},color:'#888'}}}}});
 }
 
 let hrvInst = null;
@@ -795,7 +755,7 @@ function logHRV(){
 async function getCoachNote(){
   const el = document.getElementById('coach-note');
   el.textContent = 'Generating...';
-  const ctx = `HYROX athlete Jason Chuei, 45yo, open singles M45-49. 17 races. Best open 1:21:29 Taipei 2025. Most recent HK 2026 1:25:49. Key gaps: SkiErg top 87%, Row top 73%, Sled push top 78%, Run 8 collapse 6:25. Farmer carry elite top 23%. Target Hangzhou July 5 2026: 1:12–1:14. Benchmarks: ${JSON.stringify(S.benchmarks)}. Recent sessions (last 5): ${JSON.stringify(S.sessions.slice(-5).map(s=>({date:s.date,type:s.type,pace:s.pace,rpe:s.rpe,lifts:s.lifts,notes:s.notes})))}`;
+  const _p=S.profile||{},_st=deriveStats();const ctx = `HYROX athlete ${_p.display_name||'athlete'}, ${_p.age||'?'}yo, ${_p.division||'open'}. ${_st.count} races.${_st.bestOpen?' Best open '+_hms(_st.bestOpen.total_sec)+' at '+_st.bestOpen.location+'.':''}${_p.target_race_name?' Target '+_p.target_race_name+(_p.target_time_sec?' '+_hms(_p.target_time_sec):'')+'.':''} Benchmarks: ${JSON.stringify(S.benchmarks)}. Recent sessions (last 5): ${JSON.stringify(S.sessions.slice(-5).map(s=>({date:s.date,type:s.type,pace:s.pace,rpe:s.rpe,lifts:s.lifts,notes:s.notes})))}`;
   try{
     const r = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:'Elite HYROX coach. Give 3–4 sentences: terse, specific, actionable. Focus on the single highest-impact next action based on recent data. No preamble.',messages:[{role:'user',content:ctx}]})});
     const d = await r.json();
@@ -937,48 +897,54 @@ function renderLogList(){
 }
 
 // ── RACES ─────────────────────────────────────────────────────────────────
+
+function _hms(sec){sec=Math.round(sec||0);const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),x=sec%60;return h+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');}
+function _mon(d){const dt=new Date(d);return dt.toLocaleString('en',{month:'short'})+' '+dt.getFullYear();}
+function deriveStats(){
+  const R=S.races||[];
+  const open=R.filter(r=>/open/i.test(r.category||''));
+  const bestOpen=open.reduce((a,b)=>(!a||b.total_sec<a.total_sec)?b:a,null);
+  const bestAG=R.reduce((a,b)=>{const n=parseInt(String(b.rank||'').replace('#',''));if(!n)return a;return(!a||n<a._n)?Object.assign({_n:n},b):a;},null);
+  const latest=R.reduce((a,b)=>(!a||new Date(b.date)>new Date(a.date))?b:a,null);
+  const openTrend=open.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).map(r=>({l:new Date(r.date).toLocaleString('en',{month:'short'})+' '+String(new Date(r.date).getFullYear()).slice(2),s:r.total_sec}));
+  const featured=R.find(r=>r.station_times&&r.station_times.length)||latest;
+  return {count:R.length,bestOpen,bestAG,latest,openTrend,featured};
+}
+function applyProfile(){
+  const p=S.profile||{},st=deriveStats();
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('hdr-name',p.display_name||'Athlete');
+  set('hdr-div',p.division||'\u2014');
+  const tgt=p.target_time_sec?_hms(p.target_time_sec):null;
+  set('hdr-target',tgt?('Target '+tgt):'Set target');
+  set('m-days-label','Days to '+(p.target_race_name||'race'));
+  set('m-days-sub',p.target_race_date?new Date(p.target_race_date).toLocaleString('en',{month:'long',day:'numeric',year:'numeric'}):'\u2014');
+  set('m-bestopen',st.bestOpen?_hms(st.bestOpen.total_sec):'\u2014');
+  set('m-bestopen-sub',st.bestOpen?(st.bestOpen.location+' '+new Date(st.bestOpen.date).getFullYear()):'No races yet');
+  set('proj-target',(tgt?('Target: '+tgt):'No target set')+(st.bestOpen?(' \u00b7 Best open: '+_hms(st.bestOpen.total_sec)):''));
+}
+
 function renderRaces(){
-  // HK breakdown
-  const hkData = [
-    {n:'SkiErg',t:287,tgt:250,pct:87},{n:'Sled push',t:205,tgt:175,pct:78},
-    {n:'Sled pull',t:255,tgt:135,pct:36},{n:'Burpee BJ',t:331,tgt:235,pct:57},
-    {n:'Row',t:296,tgt:220,pct:73},{n:'Farmer carry',t:97,tgt:115,pct:23},
-    {n:'Lunges',t:345,tgt:240,pct:69},{n:'Wall balls',t:410,tgt:230,pct:54},
-  ];
-  document.getElementById('hk-breakdown').innerHTML = hkData.map(d=>{
-    const gap = d.t-d.tgt;
-    const col = d.pct>75?'var(--red)':d.pct>55?'var(--amber)':'var(--green)';
-    return `<div class="st-row">
-      <span class="st-name">${d.n}</span>
-      <span class="st-time">${s2m(d.t)}</span>
-      <span class="st-time" style="color:var(--muted)">${s2m(d.tgt)}</span>
-      <span class="st-pct" style="color:${col}">top ${d.pct}%</span>
-    </div>`;
-  }).join('');
-
-  // Run splits chart
-  const rsCtx = document.getElementById('runsChart');
-  if(rsCtx) new Chart(rsCtx,{type:'bar',data:{labels:['R1*','R2','R3','R4','R5','R6','R7','R8'],datasets:[{data:HK_RUNS.map(s=>+(s/60).toFixed(2)),backgroundColor:HK_RUNS.map((_,i)=>i===7?'#FF4D4D':i===0?'#FFB547':'rgba(200,241,53,.4)'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>s2m(HK_RUNS[v.dataIndex])}}},scales:{y:{ticks:{font:{size:9},callback:v=>v+'m'},grid:{color:'rgba(255,255,255,.04)'}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
-
-  // Open trend
-  const otCtx = document.getElementById('openTrendChart');
-  if(otCtx) new Chart(otCtx,{type:'line',data:{labels:OPEN_RACES.map(r=>r.l),datasets:[{data:OPEN_RACES.map(r=>+(r.s/60).toFixed(1)),borderColor:'#C8F135',backgroundColor:'rgba(200,241,53,.07)',borderWidth:2,pointBackgroundColor:'#C8F135',pointRadius:3,fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>s2m(OPEN_RACES[v.dataIndex].s)}}},scales:{y:{reverse:true,ticks:{font:{size:9},callback:v=>{const s=Math.round(v*60);return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60)}},grid:{color:'rgba(255,255,255,.04)'}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
-
-  // All races list
-  document.getElementById('all-races').innerHTML = ALL_RACES.map(r=>{
-    const divCol = r.div==='Open'?'var(--green)':r.div==='Relay'?'var(--blue)':'var(--muted)';
-    return `<div class="race-item">
-      <div class="race-left">
-        <div class="race-loc">${r.l} ${r.best?'<span class="badge b-accent" style="font-size:9px">Best open</span>':''}${r.latest?'<span class="badge b-blue" style="font-size:9px">Latest</span>':''}</div>
-        <div class="race-meta">
-          <span style="color:${divCol}">${r.div}</span>
-          <span>${r.d}</span>
-          <span>${r.r}</span>
-        </div>
-      </div>
-      <div class="race-time">${r.t}</div>
-    </div>`;
-  }).join('');
+  const st=deriveStats();
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('race-count',st.count);
+  set('race-bestopen',st.bestOpen?_hms(st.bestOpen.total_sec):'\u2014');
+  set('race-bestag',st.bestAG?(st.bestAG.rank||'\u2014'):'\u2014');
+  set('race-bestag-sub',st.bestAG?st.bestAG.location:'\u2014');
+  const fb=document.getElementById('hk-breakdown');
+  if(fb){const ft=st.featured&&st.featured.station_times;
+    fb.innerHTML=(ft&&ft.length)?ft.map(d=>{const col=d.pct>75?'var(--red)':d.pct>55?'var(--amber)':'var(--green)';return `<div class="st-row"><span class="st-name">${d.n}</span><span class="st-time">${s2m(d.t)}</span><span class="st-time" style="color:var(--muted)">${s2m(d.tgt)}</span><span class="st-pct" style="color:${col}">top ${d.pct}%</span></div>`;}).join(''):'<div style="opacity:.5;font-size:12px;padding:8px">No station breakdown yet.</div>';}
+  const rs=document.getElementById('runsChart');
+  if(rs&&st.featured&&st.featured.run_splits&&st.featured.run_splits.length){const RUNS=st.featured.run_splits;if(window._runsC)window._runsC.destroy();
+    window._runsC=new Chart(rs,{type:'bar',data:{labels:RUNS.map((_,i)=>'R'+(i+1)),datasets:[{data:RUNS.map(s=>+(s/60).toFixed(2)),backgroundColor:RUNS.map((v,i)=>i===RUNS.length-1?'#FF4D4D':i===0?'#FFB547':'rgba(200,241,53,.4)'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>s2m(RUNS[v.dataIndex])}}},scales:{y:{ticks:{font:{size:9},callback:v=>v+'m'},grid:{color:'rgba(255,255,255,.04)'}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});}
+  const ot=document.getElementById('openTrendChart');
+  if(ot&&st.openTrend.length){if(window._otC)window._otC.destroy();
+    window._otC=new Chart(ot,{type:'line',data:{labels:st.openTrend.map(r=>r.l),datasets:[{data:st.openTrend.map(r=>+(r.s/60).toFixed(1)),borderColor:'#C8F135',backgroundColor:'rgba(200,241,53,.07)',borderWidth:2,pointBackgroundColor:'#C8F135',pointRadius:3,fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>s2m(st.openTrend[v.dataIndex].s)}}},scales:{y:{reverse:true,ticks:{font:{size:9},callback:v=>{const x=Math.round(v*60);return Math.floor(x/60)+':'+(x%60<10?'0':'')+(x%60)}},grid:{color:'rgba(255,255,255,.04)'}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});}
+  const list=document.getElementById('all-races');
+  if(list){const R=(S.races||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if(!R.length){list.innerHTML='<div style="opacity:.5;font-size:13px;padding:16px;text-align:center">No races yet. Add your HYROX results to see history.</div>';return;}
+    const bId=st.bestOpen&&st.bestOpen.id,lId=st.latest&&st.latest.id;
+    list.innerHTML=R.map(r=>{const dc=/open/i.test(r.category)?'var(--green)':/relay/i.test(r.category)?'var(--blue)':'var(--muted)';return `<div class="race-item"><div class="race-left"><div class="race-loc">${r.location} ${r.id===bId?'<span class="badge b-accent" style="font-size:9px">Best open</span>':''}${r.id===lId?'<span class="badge b-blue" style="font-size:9px">Latest</span>':''}</div><div class="race-meta"><span style="color:${dc}">${r.category}</span><span>${_mon(r.date)}</span><span>${r.rank||''}</span></div></div><div class="race-time">${_hms(r.total_sec)}</div></div>`;}).join('');}
 }
 
 // ── BENCHMARKS ────────────────────────────────────────────────────────────
@@ -988,29 +954,12 @@ function renderProjBig(){
 }
 
 function renderBench(){
-  const data = [
-    {k:'SkiErg',n:'SkiErg (1000m)',tgt:250,pri:'High'},
-    {k:'Row',n:'Row (1000m)',tgt:220,pri:'High'},
-    {k:'SledPush',n:'Sled push',tgt:175,pri:'High'},
-    {k:'BurpeeBJ',n:'Burpee BJ',tgt:235,pri:'Med'},
-    {k:'Lunges',n:'Lunges (100m)',tgt:240,pri:'Med'},
-    {k:'WallBalls',n:'Wall balls',tgt:230,pri:'Med'},
-    {k:'SledPull',n:'Sled pull',tgt:135,pri:'Med'},
-    {k:'FarmerCarry',n:'Farmer carry',tgt:115,pri:'Low'},
-  ];
-  document.getElementById('bench-rows').innerHTML = data.map(d=>{
-    const curr = S.benchmarks[d.k]||HK[d.k];
-    const gap = curr-d.tgt;
-    const priCol = d.pri==='High'?'var(--red)':d.pri==='Med'?'var(--amber)':'var(--green)';
-    return `<div class="st-row" style="cursor:pointer" onclick="editBench('${d.k}','${d.n}',${curr})">
-      <div>
-        <div style="font-size:12px">${d.n}</div>
-        <div style="font-size:10px;color:${priCol}">${d.pri} priority</div>
-      </div>
-      <span class="st-time" style="color:var(--accent)">${s2m(curr)}</span>
-      <span class="st-time" style="color:var(--muted)">${s2m(d.tgt)}</span>
-      <span class="st-gap" style="color:${gap>0?'var(--red)':'var(--green)'}">${gap>0?'+':''}${s2m(Math.abs(gap))}</span>
-    </div>`;
+  const data=[{k:'SkiErg',n:'SkiErg (1000m)',tgt:250,pri:'High'},{k:'Row',n:'Row (1000m)',tgt:220,pri:'High'},{k:'SledPush',n:'Sled push',tgt:175,pri:'High'},{k:'BurpeeBJ',n:'Burpee BJ',tgt:235,pri:'Med'},{k:'Lunges',n:'Lunges (100m)',tgt:240,pri:'Med'},{k:'WallBalls',n:'Wall balls',tgt:230,pri:'Med'},{k:'SledPull',n:'Sled pull',tgt:135,pri:'Med'},{k:'FarmerCarry',n:'Farmer carry',tgt:115,pri:'Low'}];
+  document.getElementById('bench-rows').innerHTML=data.map(d=>{
+    const curr=S.benchmarks[d.k];
+    const priCol=d.pri==='High'?'var(--red)':d.pri==='Med'?'var(--amber)':'var(--green)';
+    const gap=curr!=null?curr-d.tgt:null;
+    return `<div class="st-row" style="cursor:pointer" onclick="editBench('${d.k}','${d.n}',${curr||0})"><div><div style="font-size:12px">${d.n}</div><div style="font-size:10px;color:${priCol}">${d.pri} priority</div></div><span class="st-time" style="color:var(--accent)">${curr!=null?s2m(curr):'\u2014'}</span><span class="st-time" style="color:var(--muted)">${s2m(d.tgt)}</span><span class="st-gap" style="color:${gap>0?'var(--red)':'var(--green)'}">${gap!=null?((gap>0?'+':'')+s2m(Math.abs(gap))):'\u2014'}</span></div>`;
   }).join('');
 }
 
@@ -1072,14 +1021,18 @@ function _toRow(o){return{...(_uuid(o.id)?{id:o.id}:{}),user_id:UID,date:o.date|
 function _toSess(r){return{id:r.id,date:r.date,type:r.type,runType:r.run_type,dist:r.distance_km!=null?String(r.distance_km):'',pace:_s2m(r.pace_sec),hr:r.hr!=null?String(r.hr):'',rpe:r.rpe!=null?String(r.rpe):'',dur:r.duration_min!=null?String(r.duration_min):'',lifts:r.lifts_text||'',notes:r.notes||'',stations:r.stations||{}};}
 async function loadFromSupabase(){
   if(!UID)return;
-  const [se,be,hv]=await Promise.all([
+  const [se,be,hv,ra,pr]=await Promise.all([
     sb.from('sessions').select('*').order('date'),
     sb.from('benchmarks').select('*'),
-    sb.from('hrv').select('*').order('date')]);
+    sb.from('hrv').select('*').order('date'),
+    sb.from('races').select('*').eq('user_id',UID),
+    sb.from('profiles').select('*').eq('user_id',UID).maybeSingle()]);
   if(se.data)S.sessions=se.data.map(_toSess);
   if(be.data&&be.data.length)S.benchmarks=Object.fromEntries(be.data.map(r=>[r.station,r.best_sec]));
   if(hv.data)S.hrv={history:hv.data.map(r=>({date:r.date,val:Number(r.value)}))};
-  await sb.from('profiles').upsert({user_id:UID,display_name:(SB_EMAIL||'').split('@')[0]});
+  if(ra.data)S.races=ra.data;
+  if(pr.data)S.profile=pr.data;
+  else{const ins={user_id:UID,display_name:(SB_EMAIL||'').split('@')[0]};try{await sb.from('profiles').insert(ins);}catch(e){}S.profile=ins;}
   try{localStorage.setItem('hachi_v3',JSON.stringify(S));}catch{}
 }
 async function pushAll(){
