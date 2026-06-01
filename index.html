@@ -1147,15 +1147,19 @@ function renderGroup(){
     const bestPct=(m,k)=>{let p=null;(m.races||[]).forEach(r=>(r.station_times||[]).forEach(s=>{if(s.k===k&&s.pct!=null&&(p==null||s.pct<p))p=s.pct;}));return p;};
     const hdr='<div style="display:grid;grid-template-columns:90px repeat('+GROUP.members.length+',1fr);gap:2px;font-size:9px;color:var(--muted);margin-bottom:2px"><div></div>'+GROUP.members.map(m=>`<div style="text-align:center">${(m.profile.display_name||'A').split(' ')[0]}</div>`).join('')+'</div>';
     const rows=_STATIONS.map(([k,lbl])=>{
-      const cells=GROUP.members.map(m=>{
-        const pct=bestPct(m,k);
-        if(pct==null)return '<div style="background:#1a1a1a;border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#444">\u2014</div>';
-        const col=pct<=25?'rgba(46,204,113,.7)':pct<=50?'rgba(241,196,15,.6)':'rgba(255,77,77,.65)';
-        return `<div style="background:${col};border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#fff">${pct}%</div>`;
+      const secs=GROUP.members.map(m=>m.bench&&m.bench[k]!=null?m.bench[k]:null);
+      const pres=secs.filter(v=>v!=null); const lo=Math.min(...pres),hi=Math.max(...pres);
+      const cells=GROUP.members.map((m,i)=>{
+        const pct=bestPct(m,k); const sec=secs[i];
+        if(pct!=null){const col=pct<=25?'rgba(46,204,113,.7)':pct<=50?'rgba(241,196,15,.6)':'rgba(255,77,77,.65)';
+          return `<div style="background:${col};border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#fff">${pct}%</div>`;}
+        if(sec!=null){const t=hi===lo?0:(sec-lo)/(hi-lo);const col=t<.5?`rgba(46,204,113,${.3+(.5-t)})`:`rgba(255,77,77,${.3+(t-.5)})`;
+          return `<div style="background:${col};border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#fff">${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}</div>`;}
+        return '<div style="background:#1a1a1a;border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#444">\u2014</div>';
       }).join('');
       return `<div style="display:grid;grid-template-columns:90px repeat(${GROUP.members.length},1fr);gap:2px;margin-bottom:2px"><div style="font-size:10px;color:var(--muted);align-self:center">${lbl}</div>${cells}</div>`;
     }).join('');
-    hm.innerHTML=hdr+rows+'<div style="font-size:9px;color:var(--muted);margin-top:4px">Best field percentile per station \u00b7 green \u226425% \u00b7 amber \u226450% \u00b7 red >50%</div>';
+    hm.innerHTML=hdr+rows+'<div style="font-size:9px;color:var(--muted);margin-top:4px">% = field percentile (imported) \u00b7 m:ss = time, green=fastest in group. Import races for percentiles.</div>';
   }
 }
 async function importHyresult(){
