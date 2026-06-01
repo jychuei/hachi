@@ -194,6 +194,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
       <span class="badge b-accent" id="hdr-name">Athlete</span>
       <span class="badge b-gray" id="hdr-div">—</span>
       <span class="badge b-blue" id="hdr-target">—</span>
+      <span class="badge b-gray" id="hdr-logout" style="cursor:pointer;opacity:.7" onclick="sbLogout()">Sign out</span>
     </div>
   </div>
 
@@ -1088,6 +1089,7 @@ async function _onSession(sess){
   if(sess){UID=sess.user.id;SB_EMAIL=sess.user.email||'';_hideLogin();await loadFromSupabase();init();}
   else{_showLogin();}
 }
+function sbLogout(){ try{localStorage.removeItem('hachi_v3');}catch{} sb.auth.signOut().then(()=>location.reload()); }
 async function bootstrap(){
   sb.auth.onAuthStateChange((_e,s)=>{_onSession(s);});
   const {data:{session}}=await sb.auth.getSession();
