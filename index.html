@@ -467,6 +467,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────
 const RACE_DATE = new Date('2026-07-05');
@@ -1058,7 +1059,67 @@ function init(){
   document.getElementById('l-date').value = new Date().toISOString().slice(0,10);
 }
 
-init();
+
+/* ── SUPABASE DATA LAYER ───────────────── */
+const SB_URL='https://pzxxuvrutzmmfygwswmm.supabase.co';
+const SB_KEY='sb_publishable_ctO9ZxqBsT86QuYMczyp2w_dGUjTJSB';
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+let UID=null,SB_EMAIL='',_syncT=null;
+const _m2s=v=>{if(v==null||v==='')return null;const p=String(v).split(':');return p.length===2?(+p[0])*60+(+p[1]):Math.round(parseFloat(v));};
+const _s2m=x=>{if(x==null)return '';const m=Math.floor(x/60),k=x%60;return m+':'+String(k).padStart(2,'0');};
+const _uuid=x=>/^[0-9a-f]{8}-/.test(String(x||''));
+function _toRow(o){return{...(_uuid(o.id)?{id:o.id}:{}),user_id:UID,date:o.date||null,type:o.type||null,run_type:o.runType||null,distance_km:o.dist?parseFloat(o.dist):null,pace_sec:_m2s(o.pace),hr:o.hr?parseInt(o.hr):null,rpe:o.rpe?parseInt(o.rpe):null,duration_min:o.dur?parseInt(o.dur):null,lifts_text:o.lifts||null,stations:o.stations||{},notes:o.notes||null};}
+function _toSess(r){return{id:r.id,date:r.date,type:r.type,runType:r.run_type,dist:r.distance_km!=null?String(r.distance_km):'',pace:_s2m(r.pace_sec),hr:r.hr!=null?String(r.hr):'',rpe:r.rpe!=null?String(r.rpe):'',dur:r.duration_min!=null?String(r.duration_min):'',lifts:r.lifts_text||'',notes:r.notes||'',stations:r.stations||{}};}
+async function loadFromSupabase(){
+  if(!UID)return;
+  const [se,be,hv]=await Promise.all([
+    sb.from('sessions').select('*').order('date'),
+    sb.from('benchmarks').select('*'),
+    sb.from('hrv').select('*').order('date')]);
+  if(se.data)S.sessions=se.data.map(_toSess);
+  if(be.data&&be.data.length)S.benchmarks=Object.fromEntries(be.data.map(r=>[r.station,r.best_sec]));
+  if(hv.data)S.hrv={history:hv.data.map(r=>({date:r.date,val:Number(r.value)}))};
+  await sb.from('profiles').upsert({user_id:UID,display_name:(SB_EMAIL||'').split('@')[0]});
+  try{localStorage.setItem('hachi_v3',JSON.stringify(S));}catch{}
+}
+async function pushAll(){
+  if(!UID)return;
+  const ss=S.sessions||[];
+  const fresh=ss.filter(o=>!_uuid(o.id));
+  if(fresh.length){const {data}=await sb.from('sessions').insert(fresh.map(_toRow)).select();if(data)fresh.forEach((o,i)=>{if(data[i])o.id=data[i].id;});}
+  const ext=ss.filter(o=>_uuid(o.id));
+  if(ext.length)await sb.from('sessions').upsert(ext.map(_toRow));
+  const bm=Object.entries(S.benchmarks||{}).map(([station,best_sec])=>({user_id:UID,station,best_sec}));
+  if(bm.length)await sb.from('benchmarks').upsert(bm);
+  const hv=((S.hrv&&S.hrv.history)||[]).map(h=>({user_id:UID,date:h.date,value:h.val}));
+  if(hv.length)await sb.from('hrv').upsert(hv);
+  try{localStorage.setItem('hachi_v3',JSON.stringify(S));}catch{}
+}
+saveS=function(){try{localStorage.setItem('hachi_v3',JSON.stringify(S));}catch{}clearTimeout(_syncT);_syncT=setTimeout(pushAll,800);};
+function _hideLogin(){const o=document.getElementById('sb-login');if(o)o.remove();}
+function _showLogin(msg){
+  if(document.getElementById('sb-login'))return;
+  const d=document.createElement('div');d.id='sb-login';
+  d.style.cssText='position:fixed;inset:0;z-index:9999;background:#0A0A0A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;font-family:inherit;padding:24px';
+  d.innerHTML='<div style="font-size:32px;letter-spacing:4px">\u516B HACHI</div><div style="opacity:.6;font-size:13px">'+(msg||'Sign in to sync')+'</div><input id="sb-email" type="email" placeholder="email" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:1px solid #333;background:#141414;color:#fff;font-size:16px"><button id="sb-go" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:0;background:#fff;color:#000;font-weight:600;font-size:15px">Send magic link</button>';
+  document.body.appendChild(d);
+  document.getElementById('sb-go').onclick=async()=>{
+    const email=document.getElementById('sb-email').value.trim();if(!email)return;
+    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split('#')[0]}});
+    document.querySelector('#sb-login div:nth-child(2)').textContent=error?error.message:'Check your email for the link.';
+  };
+}
+async function _onSession(sess){
+  if(sess){UID=sess.user.id;SB_EMAIL=sess.user.email||'';_hideLogin();await loadFromSupabase();init();}
+  else{_showLogin();}
+}
+async function bootstrap(){
+  sb.auth.onAuthStateChange((_e,s)=>{_onSession(s);});
+  const {data:{session}}=await sb.auth.getSession();
+  _onSession(session);
+}
+bootstrap();
+
 </script>
 </body>
 </html>
