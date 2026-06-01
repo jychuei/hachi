@@ -328,7 +328,20 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
         </div>
 
         <div class="card">
-          <div class="card-title">All 17 races</div>
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+            <span>Races</span>
+            <button class="btn btn-sm" onclick="document.getElementById('race-form').style.display=document.getElementById('race-form').style.display==='none'?'block':'none'" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid #333;background:#141414;color:#C8F135">+ Add race</button>
+          </div>
+          <div id="race-form" style="display:none;margin-bottom:12px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <input type="date" id="rf-date" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+              <select id="rf-cat" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px"><option>Open</option><option>Pro</option><option>Doubles</option><option>Relay</option></select>
+              <input type="text" id="rf-loc" placeholder="Location" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+              <input type="text" id="rf-time" placeholder="Total h:mm:ss" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+              <input type="text" id="rf-rank" placeholder="Rank #" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="addRace()" style="width:100%">Save race</button>
+          </div>
           <div id="all-races"></div>
         </div>
       </div>
@@ -686,13 +699,30 @@ function getProgVal(val, wk){
   return '';
 }
 
+function _divClass(){ return /pro/i.test((S.profile&&S.profile.division)||'')?'pro':'open'; }
 function calcProj(){
-  const KS=['SkiErg','SledPush','SledPull','BurpeeBJ','Row','FarmerCarry','Lunges','WallBalls'];
-  if(!KS.every(k=>S.benchmarks[k])) return null;
-  let total=0; KS.forEach(k=>{total+=Math.round(S.benchmarks[k]*1.08);});
-  const runs=S.sessions.filter(s=>s.type==='Run'&&s.pace);
-  const pace=runs.length?m2s(runs[runs.length-1].pace):295;
-  return total+pace*8+300;
+  const singles=(S.races||[]).filter(r=>!/doubles|relay|mixed/i.test(r.category||'')&&r.total_sec);
+  let base=null, baseRace=null;
+  if(singles.length){
+    const cls=_divClass();
+    const matched=singles.filter(r=>(/pro/i.test(r.category||'')?'pro':'open')===cls);
+    const pool=(matched.length?matched:singles).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    baseRace=pool[0]; base=baseRace.total_sec;
+  } else {
+    const KS=['SkiErg','SledPush','SledPull','BurpeeBJ','Row','FarmerCarry','Lunges','WallBalls'];
+    if(!KS.every(k=>S.benchmarks[k])) return null;
+    let t=0; KS.forEach(k=>{t+=Math.round(S.benchmarks[k]*1.08);});
+    const r=S.sessions.filter(s=>s.type==='Run'&&s.pace);
+    base=t+(r.length?m2s(r[r.length-1].pace):295)*8+300;
+  }
+  const runs=(S.sessions||[]).filter(s=>s.type==='Run'&&s.pace).slice(-5);
+  if(base&&baseRace&&baseRace.run_splits&&baseRace.run_splits.length&&runs.length>=2){
+    const raceRunPace=baseRace.run_splits.reduce((a,b)=>a+b,0)/baseRace.run_splits.length;
+    const recentPace=runs.reduce((a,s)=>a+m2s(s.pace),0)/runs.length;
+    const f=Math.max(0.95,Math.min(1.05,recentPace/raceRunPace));
+    return Math.round(base*f);
+  }
+  return base;
 }
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────
@@ -996,6 +1026,24 @@ function renderGroup(){
     hm.innerHTML=hdr+rows;
   }
 }
+async function addRace(){
+  const date=document.getElementById('rf-date').value;
+  const cat=document.getElementById('rf-cat').value;
+  const loc=document.getElementById('rf-loc').value.trim();
+  const tStr=document.getElementById('rf-time').value.trim();
+  const rank=document.getElementById('rf-rank').value.trim();
+  if(!date||!loc||!tStr){alert('Date, location, total time required');return;}
+  const p=tStr.split(':').map(Number);
+  const total=p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:NaN;
+  if(isNaN(total)){alert('Time format h:mm:ss');return;}
+  const row={user_id:UID,date,location:loc,category:cat,total_sec:total,rank:rank?(rank[0]==='#'?rank:'#'+rank):null};
+  const {data,error}=await sb.from('races').insert(row).select();
+  if(error){alert('Save failed: '+error.message);return;}
+  S.races=[...(S.races||[]),...(data||[row])];
+  document.getElementById('race-form').style.display='none';
+  ['rf-loc','rf-time','rf-rank'].forEach(id=>document.getElementById(id).value='');
+  renderRaces(); renderDash(); updateHeader();
+}
 function deriveStats(){
   const R=S.races||[];
   const open=R.filter(r=>/open/i.test(r.category||''));
@@ -1160,10 +1208,9 @@ function _showLogin(msg){
   if(document.getElementById('sb-login'))return;
   const d=document.createElement('div');d.id='sb-login';
   d.style.cssText='position:fixed;inset:0;z-index:9999;background:#0A0A0A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;font-family:inherit;padding:24px';
-  d.innerHTML='<style>@keyframes sbspin{to{transform:rotate(360deg)}}.sb-spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;border-radius:50%;animation:sbspin .6s linear infinite;vertical-align:-2px;margin-right:8px}#sb-go{transition:transform .08s,opacity .15s}#sb-go:active{transform:scale(.97)}#sb-go:disabled{opacity:.7;cursor:default}</style><div style="font-size:32px;letter-spacing:4px">\u516B HACHI</div><div class="sb-msg" style="opacity:.6;font-size:13px;min-height:18px;text-align:center">'+(msg||'Sign in to sync')+'</div><button id="sb-google" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:1px solid #333;background:#141414;color:#fff;font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.1-11.3-7.6l-6.5 5C9.6 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.5l6.3 5.3C41.4 36.2 44 30.6 44 24c0-1.3-.1-2.3-.4-3.5z"/></svg>Continue with Google</button><div style="opacity:.4;font-size:11px;margin:2px 0">or</div><input id="sb-email" type="email" placeholder="email" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:1px solid #333;background:#141414;color:#fff;font-size:16px"><button id="sb-go" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:0;background:#fff;color:#000;font-weight:600;font-size:15px">Send magic link</button>';
+  d.innerHTML='<style>@keyframes sbspin{to{transform:rotate(360deg)}}.sb-spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;border-radius:50%;animation:sbspin .6s linear infinite;vertical-align:-2px;margin-right:8px}#sb-go{transition:transform .08s,opacity .15s}#sb-go:active{transform:scale(.97)}#sb-go:disabled{opacity:.7;cursor:default}</style><div style="font-size:32px;letter-spacing:4px">\u516B HACHI</div><div class="sb-msg" style="opacity:.6;font-size:13px;min-height:18px;text-align:center">'+(msg||'Sign in to sync')+'</div><input id="sb-email" type="email" placeholder="email" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:1px solid #333;background:#141414;color:#fff;font-size:16px"><button id="sb-go" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:0;background:#fff;color:#000;font-weight:600;font-size:15px">Send magic link</button>';
   document.body.appendChild(d);
   const _btn=document.getElementById('sb-go'),_st=d.querySelector('.sb-msg');
-  document.getElementById('sb-google').onclick=()=>{ sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}}); };
   _btn.onclick=async()=>{
     if(_btn.disabled)return;
     const email=document.getElementById('sb-email').value.trim();
