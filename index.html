@@ -647,6 +647,22 @@ const curWeek = () => { const ps=(S.profile&&S.profile.programme_start)?new Date
 const phaseOf = w => w<=3?'Base':w===4?'Deload':w<=7?'Threshold':w===8?'Deload':w<=11?'Race Specific':w===12?'Deload':'Taper';
 const phaseColor = p => ({Base:'#5B9CF6',Deload:'#FFB547',Threshold:'#C8F135','Race Specific':'#FF6B9D',Peak:'#BF5AF2',Taper:'#FF9500'}[p]||'#666');
 
+function bandWeights(name, det){
+  if(!det||typeof det!=='string') return det;
+  const ctx=(name+' '+det).toLowerCase();
+  if(/race weight|pro weight|open weight|sled|wall ball|\bwb\b/.test(ctx)) return det;
+  const compound=/back squat|barbell|deadlift|bench press|bent over row/.test(name.toLowerCase());
+  const b=compound?0.05:0.12, inc=compound?2.5:2;
+  const rnd=(x,floor)=>{const v=(floor?Math.floor(x/inc):Math.ceil(x/inc))*inc;return +v.toFixed(2);};
+  return det.replace(/(\d+(?:\.\d+)?)\s*[\u2013-]\s*(\d+(?:\.\d+)?)\s*kg|(\d+(?:\.\d+)?)\s*kg/g,(m,a,bb,c)=>{
+    let lo,hi;
+    if(a!==undefined&&bb!==undefined){lo=+a;hi=+bb;}else{lo=hi=+c;}
+    let LO=rnd(lo*(1-b),true), HI=rnd(hi*(1+b),false);
+    if(LO<=0) LO=inc;
+    if(LO>=HI) return HI+'kg';
+    return LO+'\u2013'+HI+'kg';
+  });
+}
 function getProgVal(val, wk){
   if(typeof val === 'string') return val;
   if(typeof val === 'object'){
@@ -788,7 +804,7 @@ function renderProg(){
       if(false) return;
       const sessColor = TYPE_COLORS[sess.type]||'#666';
       const exHTML = (sess.exs||[]).map(ex=>{
-        const det = getProgVal(ex.d, wk);
+        const det = bandWeights(ex.n, getProgVal(ex.d, wk));
         return `<div class="ex-item"><span class="ex-name">${ex.n}</span><span class="ex-detail ${det&&det.match(/kg|km|min/)?'ex-weight':''}">${det}</span></div>`;
       }).join('');
       bodyHTML += `<div class="session-block">
@@ -915,7 +931,8 @@ function applyProfile(){
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   set('hdr-name',p.display_name||'Athlete');
   set('hdr-div',p.division||'\u2014');
-  const tgt=p.target_time_sec?_hms(p.target_time_sec):null;
+  const _hm=x=>{x=Math.round(x||0);return Math.floor(x/3600)+':'+String(Math.floor((x%3600)/60)).padStart(2,'0');};
+  const tgt=(p.target_low_sec&&p.target_high_sec)?(_hm(p.target_low_sec)+'\u2013'+_hm(p.target_high_sec)):(p.target_time_sec?_hms(p.target_time_sec):null);
   set('hdr-target',tgt?('Target '+tgt):'Set target');
   set('m-days-label','Days to '+(p.target_race_name||'race'));
   set('m-days-sub',p.target_race_date?new Date(p.target_race_date).toLocaleString('en',{month:'long',day:'numeric',year:'numeric'}):'\u2014');
