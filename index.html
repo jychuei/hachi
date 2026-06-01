@@ -375,6 +375,28 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
         </div>
       </div>
 
+      <div id="pg-settings" class="hidden">
+        <div class="section-header">Settings</div>
+        <div class="card">
+          <div class="card-title">Profile</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <input type="text" id="set-name" placeholder="Display name" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+            <input type="text" id="set-div" placeholder="Division" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+            <input type="text" id="set-race" placeholder="Target race" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+            <input type="date" id="set-racedate" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+            <input type="text" id="set-tlo" placeholder="Target low h:mm:ss" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+            <input type="text" id="set-thi" placeholder="Target high h:mm:ss" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+            <input type="text" id="set-5k" placeholder="5km PB mm:ss" style="padding:8px;border-radius:8px;border:1px solid #333;background:#141414;color:#fff;font-size:13px">
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Equipment access</div>
+          <div id="set-equip" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px"></div>
+        </div>
+        <button class="btn btn-primary" onclick="saveSettings()" style="width:100%;margin-bottom:8px">Save settings</button>
+        <div id="set-msg" style="font-size:12px;color:var(--muted);text-align:center;min-height:16px"></div>
+      </div>
+
     </div>
   </div>
 
@@ -399,6 +421,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
     <button class="nav-btn" onclick="goTo('bench',this)" id="nav-bench">
       <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
       BENCH
+    </button>
+    <button class="nav-btn" onclick="goTo('settings',this)" id="nav-settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      SETTINGS
     </button>
   </nav>
 </div>
@@ -715,12 +741,15 @@ function calcProj(){
     const r=S.sessions.filter(s=>s.type==='Run'&&s.pace);
     base=t+(r.length?m2s(r[r.length-1].pace):295)*8+300;
   }
-  const runs=(S.sessions||[]).filter(s=>s.type==='Run'&&s.pace).slice(-5);
-  if(base&&baseRace&&baseRace.run_splits&&baseRace.run_splits.length&&runs.length>=2){
+  const runs=(S.sessions||[]).filter(s=>s.type==='Run'&&s.pace);
+  if(base&&baseRace&&baseRace.run_splits&&baseRace.run_splits.length){
     const raceRunPace=baseRace.run_splits.reduce((a,b)=>a+b,0)/baseRace.run_splits.length;
-    const recentPace=runs.reduce((a,s)=>a+m2s(s.pace),0)/runs.length;
-    const f=Math.max(0.95,Math.min(1.05,recentPace/raceRunPace));
-    return Math.round(base*f);
+    const quality=runs.filter(s=>m2s(s.pace)<=raceRunPace).slice(-5);
+    if(quality.length>=2){
+      const recentPace=quality.reduce((a,s)=>a+m2s(s.pace),0)/quality.length;
+      const f=Math.max(0.95,Math.min(1.0,recentPace/raceRunPace));
+      return Math.round(base*f);
+    }
   }
   return base;
 }
@@ -736,6 +765,7 @@ function goTo(page, btn){
   document.getElementById('main').scrollTop = 0;
   if(page==='programme') renderProg();
   if(page==='bench'){ renderBench(); renderProjBig(); }
+  if(page==='settings') renderSettings();
 }
 
 // ── HEADER ────────────────────────────────────────────────────────────────
@@ -1043,6 +1073,43 @@ async function addRace(){
   document.getElementById('race-form').style.display='none';
   ['rf-loc','rf-time','rf-rank'].forEach(id=>document.getElementById(id).value='');
   renderRaces(); renderDash(); updateHeader();
+}
+const EQUIP_KEYS=[['ski','SkiErg'],['row','Row erg'],['sled','Sled'],['wallball','Wall ball'],['barbell','Barbell'],['dumbbell','Dumbbells'],['treadmill','Treadmill']];
+function _hms2(x){if(x==null)return '';return Math.floor(x/3600)+':'+String(Math.floor(x%3600/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');}
+function _ms2(v){const p=String(v||'').split(':').map(Number);return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:null;}
+function renderSettings(){
+  const p=S.profile||{};
+  document.getElementById('set-name').value=p.display_name||'';
+  document.getElementById('set-div').value=p.division||'';
+  document.getElementById('set-race').value=p.target_race_name||'';
+  document.getElementById('set-racedate').value=p.target_race_date||'';
+  document.getElementById('set-tlo').value=p.target_low_sec?_hms2(p.target_low_sec):'';
+  document.getElementById('set-thi').value=p.target_high_sec?_hms2(p.target_high_sec):'';
+  document.getElementById('set-5k').value=p.fivekm_pb_sec?(Math.floor(p.fivekm_pb_sec/60)+':'+String(p.fivekm_pb_sec%60).padStart(2,'0')):'';
+  const eq=p.equipment||{};
+  document.getElementById('set-equip').innerHTML=EQUIP_KEYS.map(([k,lbl])=>`<label style="display:flex;align-items:center;gap:6px;padding:6px;background:#141414;border-radius:8px;cursor:pointer"><input type="checkbox" id="eq-${k}" ${eq[k]?'checked':''}><span>${lbl}</span></label>`).join('');
+}
+async function saveSettings(){
+  const msg=document.getElementById('set-msg');
+  const eq={}; EQUIP_KEYS.forEach(([k])=>eq[k]=document.getElementById('eq-'+k).checked);
+  const five=document.getElementById('set-5k').value.trim();
+  const fivePB=five?(()=>{const p=five.split(':').map(Number);return p.length===2?p[0]*60+p[1]:null;})():null;
+  const patch={
+    user_id:UID,
+    display_name:document.getElementById('set-name').value.trim()||null,
+    division:document.getElementById('set-div').value.trim()||null,
+    target_race_name:document.getElementById('set-race').value.trim()||null,
+    target_race_date:document.getElementById('set-racedate').value||null,
+    target_low_sec:_ms2(document.getElementById('set-tlo').value.trim()),
+    target_high_sec:_ms2(document.getElementById('set-thi').value.trim()),
+    fivekm_pb_sec:fivePB,
+    equipment:eq
+  };
+  const {error}=await sb.from('profiles').upsert(patch);
+  if(error){msg.textContent='Save failed: '+error.message;return;}
+  S.profile={...S.profile,...patch};
+  msg.textContent='Saved ✓';
+  updateHeader(); renderDash();
 }
 function deriveStats(){
   const R=S.races||[];
