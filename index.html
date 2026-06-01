@@ -785,7 +785,7 @@ function updateHeader(){
 function renderDash(){
   document.getElementById('m-days').textContent=(days2race()!=null?days2race():'\u2014');
   const p=calcProj();
-  document.getElementById('m-proj').textContent=p?(Math.floor(p/60)+':'+(p%60<10?'0':'')+(p%60)):'\u2014';
+  document.getElementById('m-proj').textContent=p?_hms(p):'\u2014';
   const ps=document.getElementById('m-proj-sub'); if(ps) ps.textContent=_projLabel();
   const now=new Date(),mon=new Date(now);mon.setDate(now.getDate()-now.getDay()+1);
   document.getElementById('m-week').textContent=S.sessions.filter(s=>new Date(s.date)>=mon).length;
@@ -1287,7 +1287,7 @@ function renderRaces(){
 // ── BENCHMARKS ────────────────────────────────────────────────────────────
 function renderProjBig(){
   const p = calcProj();
-  document.getElementById('proj-big').textContent = Math.floor(p/60)+':'+(p%60<10?'0':'')+(p%60);
+  document.getElementById('proj-big').textContent = p?_hms(p):'\u2014';
 }
 
 const STATION_TGT=[{k:'SkiErg',n:'SkiErg (1000m)',tgt:250},{k:'Row',n:'Row (1000m)',tgt:220},{k:'SledPush',n:'Sled push',tgt:175},{k:'BurpeeBJ',n:'Burpee BJ',tgt:235},{k:'Lunges',n:'Lunges (100m)',tgt:240},{k:'WallBalls',n:'Wall balls',tgt:230},{k:'SledPull',n:'Sled pull',tgt:135},{k:'FarmerCarry',n:'Farmer carry',tgt:115}];
