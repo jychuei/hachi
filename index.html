@@ -489,7 +489,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
       </div>
       <div class="form-row" style="margin-bottom:8px">
         <div><label class="form-label">Sled pull</label><input type="text" id="s-sl" placeholder="2:15"></div>
-        <div><label class="form-label">Burpee BJ</label><input type="text" id="s-bbj" placeholder="4:30"></div>
+        <div><label class="form-label">BBJ</label><input type="text" id="s-bbj" placeholder="4:30"></div>
       </div>
       <div class="form-row" style="margin-bottom:8px">
         <div><label class="form-label">Row</label><input type="text" id="s-row" placeholder="3:45"></div>
@@ -819,7 +819,7 @@ function renderHRVStatus(){
 let radarInst = null;
 function renderRadar(){
   const ctx=document.getElementById('radarChart');if(!ctx)return;
-  const labels=['SkiErg','Sled push','Sled pull','Burpee BJ','Row','Farmer carry','Lunges','Wall balls'];
+  const labels=['SkiErg','Sled push','Sled pull','BBJ','Row','Farmers carry','Sandbag lunges','Wall balls'];
   const keys=['SkiErg','SledPush','SledPull','BurpeeBJ','Row','FarmerCarry','Lunges','WallBalls'];
   const curr=keys.map(k=>S.benchmarks[k]?Math.min(100,Math.round((TARGETS[k]/S.benchmarks[k])*100)):0);
   if(radarInst)radarInst.destroy();
@@ -1108,7 +1108,7 @@ async function loadGroup(){
     renderGroup();
   }catch(e){console.warn('group load',e);}
 }
-const _STATIONS=[['SkiErg','SkiErg'],['SledPush','Sled push'],['SledPull','Sled pull'],['BurpeeBJ','Burpee'],['Row','Row'],['FarmerCarry','Farmers'],['Lunges','Lunges'],['WallBalls','Wall']];
+const _STATIONS=[['SkiErg','SkiErg'],['SledPush','Sled push'],['SledPull','Sled pull'],['BurpeeBJ','BBJ'],['Row','Row'],['FarmerCarry','Farmers carry'],['Lunges','Sandbag lunges'],['WallBalls','Wall balls']];
 function renderGroup(){
   if(!GROUP||!GROUP.members.length) return;
   const card=document.getElementById('group-card'); if(!card) return;
@@ -1293,7 +1293,7 @@ function renderProjBig(){
   document.getElementById('proj-big').textContent = p?_hms(p):'\u2014';
 }
 
-const STATION_TGT=[{k:'SkiErg',n:'SkiErg (1000m)',tgt:250},{k:'Row',n:'Row (1000m)',tgt:220},{k:'SledPush',n:'Sled push',tgt:175},{k:'BurpeeBJ',n:'Burpee BJ',tgt:235},{k:'Lunges',n:'Lunges (100m)',tgt:240},{k:'WallBalls',n:'Wall balls',tgt:230},{k:'SledPull',n:'Sled pull',tgt:135},{k:'FarmerCarry',n:'Farmer carry',tgt:115}];
+const STATION_TGT=[{k:'SkiErg',n:'SkiErg (1000m)',tgt:250},{k:'Row',n:'Row (1000m)',tgt:220},{k:'SledPush',n:'Sled push',tgt:175},{k:'BurpeeBJ',n:'BBJ',tgt:235},{k:'Lunges',n:'Sandbag lunges (100m)',tgt:240},{k:'WallBalls',n:'Wall balls',tgt:230},{k:'SledPull',n:'Sled pull',tgt:135},{k:'FarmerCarry',n:'Farmers carry',tgt:115}];
 function stationPriorities(){
   const ranked=STATION_TGT.filter(d=>S.benchmarks[d.k]!=null).map(d=>({k:d.k,gap:(S.benchmarks[d.k]-d.tgt)/d.tgt})).sort((a,b)=>b.gap-a.gap);
   const pri={}; ranked.forEach((r,i)=>{pri[r.k]=i<3?'High':i<5?'Med':'Low';});
