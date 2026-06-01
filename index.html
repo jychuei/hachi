@@ -514,6 +514,9 @@ const PROG = {
         {n:'DB thruster',d:{1:'3×15 @ 2×10kg',4:'3×15 @ 2×12kg',7:'3×15 @ 2×12kg',10:'3×12 @ 2×14kg',13:'3×20 @ 2×12kg'}},
         {n:'Dead hang',d:'3×45–60 sec (grip endurance)'},
         {n:'Leg press (optional)',d:'3×15 if back fatigued — substitute for squat'},
+        {n:'🛷 IF AT SHINJUKU — Sled push (overload)',d:{1:'4×2×25m @ 160kg — just over open race weight (152kg). Hip drive, 45° lean.',4:'4×2×25m @ 165kg',7:'4×2×25m @ 170kg',10:'4×2×25m @ 180kg',13:'3×2×25m @ 160kg'}},
+        {n:'🛷 IF AT SHINJUKU — Sled pull (overload)',d:{1:'4×25m @ 110kg — just over open race weight (103kg). Controlled cadence.',4:'4×25m @ 115kg',7:'4×25m @ 120kg',10:'4×25m @ 128kg',13:'3×25m @ 110kg'}},
+        {n:'Shinjuku note',d:'Sled on Monday = overload (heavier than race). Sled on Thursday = race weight (152kg push / 103kg pull). Different purpose.'},
       ]
     },
     { type:'Run', label:'Secondary PM (optional)', title:'Easy Z2 flush',
@@ -555,9 +558,9 @@ const PROG = {
     },
     { type:'Pre-coaching', label:'Optional pre-coaching (Vamos)', title:'Sled / WB block (15–25 min)',
       exs:[
-        {n:'Option A',d:'4×25m sled push @ 50kg + 4×25m pull, 60s rest'},
-        {n:'Option B',d:'3×30 wall balls (9kg) + 3×20m lunge (20kg) unbroken'},
-        {n:'Option C',d:'2 rounds: sled push+pull → 10 WB → 20m lunge, 90s rest'},
+        {n:'Option A',d:'4×25m sled push @ 152kg (open race weight) + 4×25m pull @ 103kg, 60s rest'},
+        {n:'Option B',d:'3×30 wall balls (6kg open / 9kg pro) + 3×20m lunge (20kg) unbroken'},
+        {n:'Option C',d:'2 rounds: sled push 152kg 25m + pull 103kg 25m → 10 WB → 20m lunge, 90s rest'},
         {n:'Log',d:'Record max unbroken wall balls each week'},
       ]
     }
@@ -571,7 +574,8 @@ const PROG = {
         {n:'Each round',d:'800m run @ 4:35–4:40/km → 1 station immediately'},
         {n:'RULE',d:'Run 1 ≥4:35 always — cap treadmill at 4:35'},
         {n:'Stations (std)',d:'Rotate: treadmill 400m / BBJ 30r / farmer carry 80m @ 24kg / thruster 20r'},
-        {n:'Stations (Vamos)',d:'Rotate: sled push 2×25m / SkiErg 500m / row 500m / WB 30r / lunge 25m'},
+        {n:'Stations (Shinjuku/Vamos)',d:'Rotate: sled push 2×25m @ 152kg (race weight) / SkiErg 500m / row 500m / WB 30r @ 6kg / lunge 20kg×25m / sled pull 25m @ 103kg (race weight)'},
+        {n:'Sled weight note',d:'Open: push 152kg total / pull 103kg total. Pro: push 202kg / pull 153kg. Thursday = race weight always. Monday = overload (heavier).'},
         {n:'Finish',d:'ALWAYS end with 400m run — trains Run 8 durability'},
         {n:'WB note',d:'Fresh time = ceiling. Fatigued time = race reality. Gap should narrow over 13 weeks.'},
       ]
@@ -638,9 +642,9 @@ const PROG = {
     { type:'Pre-coaching', label:'Optional — before Sunday coaching (F45 or Vamos sled)', title:'Sled / WB / Lunge — 15–25 min',
       exs:[
         {n:'When available',d:'F45 sled before coaching, or Vamos if en route'},
-        {n:'Option A — Sled only',d:'4×25m sled push @ 50kg + 4×25m pull, 60s rest'},
-        {n:'Option B — WB + Lunge',d:'3×30 wall balls (9kg) unbroken + 3×20m lunge (20kg) — log max unbroken WB'},
-        {n:'Option C — Combined',d:'2 rounds: sled push+pull → 10 WB → 20m lunge, 90s rest'},
+        {n:'Option A — Sled only',d:'4×25m sled push @ 152kg (open race weight) + 4×25m pull @ 103kg, 60s rest'},
+        {n:'Option B — WB + Lunge',d:'3×30 wall balls (6kg open race weight) unbroken + 3×20m lunge (20kg) — log max unbroken WB'},
+        {n:'Option C — Combined',d:'2 rounds: sled push 152kg 25m + pull 103kg 25m → 10 WB → 20m lunge, 90s rest'},
         {n:'Sunday rule',d:'Legs heavy from Saturday — Option B preferred. No sled if race sim day prior.'},
         {n:'Log',d:'Record max unbroken wall balls each week — this is your WB benchmark'},
       ]
@@ -1020,7 +1024,7 @@ function editBench(key, name, curr){
 
 // ── SEED THIS WEEK'S SESSIONS ─────────────────────────────────────────────
 function seedWeekSessions(){
-  if(S.sessions.length >= 13) return; // don't re-seed if already up to date
+  if(S.sessions.length >= 14) return; // don't re-seed if already up to date
   const seeded = [
     { id:'seed1', date:'2026-05-18', type:'Gym', runType:'', dist:'', pace:'', hr:'109', lifts:'Leg press 4×sets 44/51/58/58kg, Goblet squat 26kg + Farmer carry 30kg×30m ×4sets, Deadlift 50/60/60/60kg, Bulgarian SS 12kg×3sets, DB thrusters 9kg×4sets', rpe:'7', dur:'59', notes:'W1 intro — lighter weights, form focus. Leg press machine basic (narrow stance vertical). Building up.', stations:{} },
     { id:'seed2', date:'2026-05-19', type:'Run', runType:'Long run', dist:'10.87', pace:'5:26', hr:'131', lifts:'', rpe:'6', dur:'59', notes:'Garmin base run. Low aerobic eval. Good Z2 long run, solid base.', stations:{} },
@@ -1032,9 +1036,10 @@ function seedWeekSessions(){
     { id:'seed8', date:'2026-05-25', type:'Gym', runType:'', dist:'', pace:'', hr:'106', lifts:'Depth drop→jump 10r, Smith squat 4×8@60kg, Smith DL 4×8@70kg, Stacked DB squat 4×20@2×14kg, Farmer carry 3×30m@30kg/hand, Bulgarian SS 3×10/side@2×8kg, DB thruster 3×15@2×10kg, Dead hang 55+40+20+20s', rpe:'7', dur:'89', notes:'W2 Monday. Smith machine — L5-S1 bulging disc. No box. Depth drop from floor. Progressive: Smith squat to 65kg, DL to 75kg next session. Dead hang 55s first set.', stations:{} },
     { id:'seed9', date:'2026-05-26', type:'Run', runType:'Easy', dist:'8.51', pace:'5:21', hr:'158', lifts:'', rpe:'7', dur:'46', notes:'Komazawa base. Heavy legs post Monday leg session. HR 158 at 5:21 vs HR 131 at 5:26 in W1 — 27bpm higher, normal fatigue response. Legs recovering for Thursday compromised.', stations:{} },
     { id:'seed10', date:'2026-05-27', type:'F45', runType:'', dist:'', pace:'', hr:'125', lifts:'', rpe:'6', dur:'38', notes:'F45: 22. Cardio format with structured rest. HR 125 avg — low aerobic eval. Active recovery role between Tue run and Thu compromised. PM SkiErg/Row block is the quality session today.', stations:{} },
-    { id:'seed11', date:'2026-05-28', type:'Compromised', runType:'', dist:'4.8', pace:'5:44', hr:'142', lifts:'', rpe:'9', dur:'70', notes:'W2 Thu. Renaissance Shinjuku 24. 6×800m runs + stations: row 500m / sled push 150kg×40m / sled pull+push 150kg / lunges 20kg×40m / row 500m / wall balls 6kg×100r. Run splits: 5:25→5:28→5:54→5:54→6:01→6:01/km. Total run time 27:26. Row 2:09/500m both rounds consistent. WB 7:21 fatigued (race weight). Sled finisher 150kg pull+100kg push arms only. Best session of programme.', stations:{FarmerCarry:97,Row:129,Lunges:133,WallBalls:441} },
+    { id:'seed11', date:'2026-05-28', type:'Compromised', runType:'', dist:'4.8', pace:'5:44', hr:'142', lifts:'', rpe:'9', dur:'70', notes:'W2 Thu. Renaissance Shinjuku 24. 6×800m runs + stations: row 500m / sled push 150kg×40m (near open race weight 152kg) / sled pull+push 150kg / lunges 20kg×40m / row 500m / wall balls 6kg×100r. Run splits: 5:25→5:28→5:54→5:54→6:01→6:01/km. Total run time 27:26. Row 2:09/500m both rounds consistent. WB 7:21 fatigued (open race weight 6kg). Sled finisher 150kg pull+100kg push arms only. Best session of programme.', stations:{FarmerCarry:97,Row:129,Lunges:133,WallBalls:441} },
     { id:'seed12', date:'2026-05-29', type:'Gym', runType:'', dist:'', pace:'', hr:'92', lifts:'Seated cable row 4×12@63kg, Lat pulldown 3×13@49kg, Single-arm DB row 3×10@24kg, Face pull 3×15@10kg, DB shoulder press 3×12@18kg, DB incline press 3×10@24kg, Push-up 21+21, Dead hang 45+45+30s, Plank 150s, Hollow hold 3×30s', rpe:'7', dur:'74', notes:'W2 Friday. Upper body — legs rest post Thu 150kg sled. Form breaking last reps of rows — weights correct, need stricter reset. Push-up up from 20+18. Dead hang building. W2 complete.', stations:{} },
     { id:'seed13', date:'2026-05-30', type:'F45', runType:'', dist:'', pace:'', hr:'112', lifts:'', rpe:'5', dur:'54', notes:'F45: Track Stars. Saturday hybrid format. HR 112 — low aerobic eval, lighter day. 54 min. End of W2.', stations:{} },
+    { id:'seed14', date:'2026-06-01', type:'Gym', runType:'', dist:'', pace:'', hr:'109', lifts:'Box jump 3×6 warm-up, Smith squat 4×10@61.3kg (50kg plates+11.3kg bar), Smith DL 4×8@76.3kg (65kg plates+11.3kg bar), Goblet squat 4×20@2×14kg, Farmer carry 3×30m@32kg/hand, Bulgarian SS 3×10/leg@2×9kg, DB thruster 3×15@2×10kg, Dead hang 50+30+40s', rpe:'7', dur:'81', notes:'W3 Monday. TIP.X Shibuya. Smith bar 11.3kg — effective squat 50kg plates, DL 65kg plates. Lighter than target but stable base. Carry 30m — extend to 40m next. Dead hang 50s. Next Monday: Shinjuku barbell + sled overload (squat 65kg, DL 80kg).', stations:{} },
   ];
   S.sessions = seeded;
   saveS();
