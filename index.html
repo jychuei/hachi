@@ -1141,18 +1141,21 @@ function renderGroup(){
     if(_grpRadar)_grpRadar.destroy();
     _grpRadar=new Chart(ctx,{type:'radar',data:{labels:_STATIONS.map(s=>s[1]),datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:'#aaa'}}},scales:{r:{min:0,max:120,ticks:{display:false},grid:{color:'rgba(255,255,255,.06)'},angleLines:{color:'rgba(255,255,255,.06)'},pointLabels:{font:{size:9},color:'#888'}}}}});
   }
-  // heatmap (station rows × members, fastest=green slowest=red per row)
+  // heatmap (station rows × members, coloured by hyresult percentile: green<=25, amber<=50, red>50)
   const hm=document.getElementById('group-heatmap');
-  if(hm){const hdr='<div style="display:grid;grid-template-columns:90px repeat('+GROUP.members.length+',1fr);gap:2px;font-size:9px;color:var(--muted);margin-bottom:2px"><div></div>'+GROUP.members.map(m=>`<div style="text-align:center">${(m.profile.display_name||'A').split(' ')[0]}</div>`).join('')+'</div>';
+  if(hm){
+    const bestPct=(m,k)=>{let p=null;(m.races||[]).forEach(r=>(r.station_times||[]).forEach(s=>{if(s.k===k&&s.pct!=null&&(p==null||s.pct<p))p=s.pct;}));return p;};
+    const hdr='<div style="display:grid;grid-template-columns:90px repeat('+GROUP.members.length+',1fr);gap:2px;font-size:9px;color:var(--muted);margin-bottom:2px"><div></div>'+GROUP.members.map(m=>`<div style="text-align:center">${(m.profile.display_name||'A').split(' ')[0]}</div>`).join('')+'</div>';
     const rows=_STATIONS.map(([k,lbl])=>{
-      const vals=GROUP.members.map(m=>m.bench[k]||null);
-      const present=vals.filter(v=>v!=null);const lo=Math.min(...present),hi=Math.max(...present);
-      const cells=vals.map(v=>{if(v==null)return '<div style="background:#1a1a1a;border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#444">\u2014</div>';
-        const t=hi===lo?0:(v-lo)/(hi-lo);const col=t<.5?`rgba(46,204,113,${.25+(.5-t)})`:`rgba(255,77,77,${.25+(t-.5)})`;
-        const mm=Math.floor(v/60),ss=v%60;return `<div style="background:${col};border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#fff">${mm}:${String(ss).padStart(2,'0')}</div>`;}).join('');
+      const cells=GROUP.members.map(m=>{
+        const pct=bestPct(m,k);
+        if(pct==null)return '<div style="background:#1a1a1a;border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#444">\u2014</div>';
+        const col=pct<=25?'rgba(46,204,113,.7)':pct<=50?'rgba(241,196,15,.6)':'rgba(255,77,77,.65)';
+        return `<div style="background:${col};border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#fff">${pct}%</div>`;
+      }).join('');
       return `<div style="display:grid;grid-template-columns:90px repeat(${GROUP.members.length},1fr);gap:2px;margin-bottom:2px"><div style="font-size:10px;color:var(--muted);align-self:center">${lbl}</div>${cells}</div>`;
     }).join('');
-    hm.innerHTML=hdr+rows;
+    hm.innerHTML=hdr+rows+'<div style="font-size:9px;color:var(--muted);margin-top:4px">Best field percentile per station \u00b7 green \u226425% \u00b7 amber \u226450% \u00b7 red >50%</div>';
   }
 }
 async function importHyresult(){
