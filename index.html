@@ -643,7 +643,7 @@ function loadS(){
 // ── UTILS ─────────────────────────────────────────────────────────────────
 const s2m = s => { const m=Math.floor(s/60),ss=s%60; return m+':'+(ss<10?'0':'')+ss; };
 const m2s = str => { if(!str||!str.includes(':'))return 0; const[m,s]=str.split(':'); return parseInt(m||0)*60+parseInt(s||0); };
-const days2race = () => { const rd=(S.profile&&S.profile.target_race_date)?new Date(S.profile.target_race_date):RACE_DATE; return Math.max(0, Math.ceil((rd-new Date())/86400000)); };
+const days2race = () => { const d=(S.profile&&S.profile.target_race_date); if(!d) return null; return Math.max(0, Math.ceil((new Date(d)-new Date())/86400000)); };
 const curWeek = () => { const ps=(S.profile&&S.profile.programme_start)?new Date(S.profile.programme_start):new Date('2026-05-18'); return Math.max(1, Math.min(13, Math.ceil((new Date()-ps)/604800000)+1)); };
 const phaseOf = w => w<=3?'Base':w===4?'Deload':w<=7?'Threshold':w===8?'Deload':w<=11?'Race Specific':w===12?'Deload':'Taper';
 const phaseColor = p => ({Base:'#5B9CF6',Deload:'#FFB547',Threshold:'#C8F135','Race Specific':'#FF6B9D',Peak:'#BF5AF2',Taper:'#FF9500'}[p]||'#666');
@@ -701,14 +701,14 @@ function goTo(page, btn){
 function updateHeader(){
   const d=days2race(),w=curWeek(),ph=phaseOf(w);
   const rn=(S.profile&&S.profile.target_race_name)||'race';
-  document.getElementById('hdr-countdown').textContent=d+' days \u00b7 '+rn;
+  document.getElementById('hdr-countdown').textContent=(d!=null?d+' days \u00b7 '+rn:'No race set');
   document.getElementById('hdr-phase').textContent='W'+w+' \u00b7 '+ph;
   applyProfile();
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
 function renderDash(){
-  document.getElementById('m-days').textContent=days2race();
+  document.getElementById('m-days').textContent=(days2race()!=null?days2race():'\u2014');
   const p=calcProj();
   document.getElementById('m-proj').textContent=p?(Math.floor(p/60)+':'+(p%60<10?'0':'')+(p%60)):'\u2014';
   const now=new Date(),mon=new Date(now);mon.setDate(now.getDate()-now.getDay()+1);
@@ -717,12 +717,11 @@ function renderDash(){
 }
 
 function renderPriorityGaps(){
-  const items=[{n:'SkiErg',k:'SkiErg',tgt:250},{n:'Row',k:'Row',tgt:220},{n:'Sled push',k:'SledPush',tgt:175},{n:'Burpee BJ',k:'BurpeeBJ',tgt:235},{n:'Lunges',k:'Lunges',tgt:240}];
-  document.getElementById('priority-gaps').innerHTML=items.map(it=>{
-    const curr=S.benchmarks[it.k];
-    if(curr==null)return `<div class="priority-item"><div class="priority-header"><span class="priority-name">${it.n}</span><span class="priority-gap">\u2014</span></div><div class="pbar"><div class="pbar-fill" style="width:0%"></div></div></div>`;
-    const gap=curr-it.tgt,pf=Math.min(100,Math.round((it.tgt/curr)*100)),cls=pf<60?'danger':pf<80?'warn':'';
-    return `<div class="priority-item"><div class="priority-header"><span class="priority-name">${it.n}</span><span class="priority-gap">\u2212${s2m(Math.max(0,gap))}</span></div><div class="pbar"><div class="pbar-fill ${cls}" style="width:${pf}%"></div></div></div>`;
+  const top=STATION_TGT.filter(d=>S.benchmarks[d.k]!=null).map(d=>({n:d.n.replace(/ \(.*\)/,''),gap:S.benchmarks[d.k]-d.tgt,pf:Math.min(100,Math.round((d.tgt/S.benchmarks[d.k])*100))})).sort((a,b)=>(b.gap/Math.abs(b.gap||1))-(a.gap/Math.abs(a.gap||1))||b.gap-a.gap).slice(0,5);
+  if(!top.length){document.getElementById('priority-gaps').innerHTML='<div style="opacity:.5;font-size:12px;padding:8px">Log your benchmarks to see priority gaps.</div>';return;}
+  document.getElementById('priority-gaps').innerHTML=top.map(it=>{
+    const cls=it.pf<60?'danger':it.pf<80?'warn':'';
+    return `<div class="priority-item"><div class="priority-header"><span class="priority-name">${it.n}</span><span class="priority-gap">${it.gap>0?'\u2212'+s2m(it.gap):'on target'}</span></div><div class="pbar"><div class="pbar-fill ${cls}" style="width:${it.pf}%"></div></div></div>`;
   }).join('');
 }
 
@@ -971,13 +970,21 @@ function renderProjBig(){
   document.getElementById('proj-big').textContent = Math.floor(p/60)+':'+(p%60<10?'0':'')+(p%60);
 }
 
+const STATION_TGT=[{k:'SkiErg',n:'SkiErg (1000m)',tgt:250},{k:'Row',n:'Row (1000m)',tgt:220},{k:'SledPush',n:'Sled push',tgt:175},{k:'BurpeeBJ',n:'Burpee BJ',tgt:235},{k:'Lunges',n:'Lunges (100m)',tgt:240},{k:'WallBalls',n:'Wall balls',tgt:230},{k:'SledPull',n:'Sled pull',tgt:135},{k:'FarmerCarry',n:'Farmer carry',tgt:115}];
+function stationPriorities(){
+  const ranked=STATION_TGT.filter(d=>S.benchmarks[d.k]!=null).map(d=>({k:d.k,gap:(S.benchmarks[d.k]-d.tgt)/d.tgt})).sort((a,b)=>b.gap-a.gap);
+  const pri={}; ranked.forEach((r,i)=>{pri[r.k]=i<3?'High':i<5?'Med':'Low';});
+  return pri;
+}
 function renderBench(){
-  const data=[{k:'SkiErg',n:'SkiErg (1000m)',tgt:250,pri:'High'},{k:'Row',n:'Row (1000m)',tgt:220,pri:'High'},{k:'SledPush',n:'Sled push',tgt:175,pri:'High'},{k:'BurpeeBJ',n:'Burpee BJ',tgt:235,pri:'Med'},{k:'Lunges',n:'Lunges (100m)',tgt:240,pri:'Med'},{k:'WallBalls',n:'Wall balls',tgt:230,pri:'Med'},{k:'SledPull',n:'Sled pull',tgt:135,pri:'Med'},{k:'FarmerCarry',n:'Farmer carry',tgt:115,pri:'Low'}];
-  document.getElementById('bench-rows').innerHTML=data.map(d=>{
+  const pri=stationPriorities();
+  document.getElementById('bench-rows').innerHTML=STATION_TGT.map(d=>{
     const curr=S.benchmarks[d.k];
-    const priCol=d.pri==='High'?'var(--red)':d.pri==='Med'?'var(--amber)':'var(--green)';
+    const p=pri[d.k];
+    const priCol=p==='High'?'var(--red)':p==='Med'?'var(--amber)':'var(--green)';
     const gap=curr!=null?curr-d.tgt:null;
-    return `<div class="st-row" style="cursor:pointer" onclick="editBench('${d.k}','${d.n}',${curr||0})"><div><div style="font-size:12px">${d.n}</div><div style="font-size:10px;color:${priCol}">${d.pri} priority</div></div><span class="st-time" style="color:var(--accent)">${curr!=null?s2m(curr):'\u2014'}</span><span class="st-time" style="color:var(--muted)">${s2m(d.tgt)}</span><span class="st-gap" style="color:${gap>0?'var(--red)':'var(--green)'}">${gap!=null?((gap>0?'+':'')+s2m(Math.abs(gap))):'\u2014'}</span></div>`;
+    const priLabel=p?(p+' priority'):'\u2014';
+    return `<div class="st-row" style="cursor:pointer" onclick="editBench('${d.k}','${d.n}',${curr||0})"><div><div style="font-size:12px">${d.n}</div><div style="font-size:10px;color:${priCol}">${priLabel}</div></div><span class="st-time" style="color:var(--accent)">${curr!=null?s2m(curr):'\u2014'}</span><span class="st-time" style="color:var(--muted)">${s2m(d.tgt)}</span><span class="st-gap" style="color:${gap>0?'var(--red)':'var(--green)'}">${gap!=null?((gap>0?'+':'')+s2m(Math.abs(gap))):'\u2014'}</span></div>`;
   }).join('');
 }
 
