@@ -1044,10 +1044,10 @@ async function loadFromSupabase(){
     sb.from('hrv').select('*').order('date'),
     sb.from('races').select('*').eq('user_id',UID),
     sb.from('profiles').select('*').eq('user_id',UID).maybeSingle()]);
-  if(se.data)S.sessions=se.data.map(_toSess);
-  if(be.data&&be.data.length)S.benchmarks=Object.fromEntries(be.data.map(r=>[r.station,r.best_sec]));
-  if(hv.data)S.hrv={history:hv.data.map(r=>({date:r.date,val:Number(r.value)}))};
-  if(ra.data)S.races=ra.data;
+  if(!se.error)S.sessions=(se.data||[]).map(_toSess);
+  if(!be.error)S.benchmarks=Object.fromEntries((be.data||[]).map(r=>[r.station,r.best_sec]));
+  if(!hv.error)S.hrv={history:(hv.data||[]).map(r=>({date:r.date,val:Number(r.value)}))};
+  if(!ra.error)S.races=ra.data||[];
   if(pr.data)S.profile=pr.data;
   else{const ins={user_id:UID,display_name:(SB_EMAIL||'').split('@')[0]};try{await sb.from('profiles').insert(ins);}catch(e){}S.profile=ins;}
   try{localStorage.setItem('hachi_v3',JSON.stringify(S));}catch{}
