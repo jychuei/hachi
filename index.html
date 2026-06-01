@@ -912,6 +912,13 @@ function genWeek(){
   });
   return {week:out,wk,phase};
 }
+function proxyFor(name, eq){
+  if(eq.ski===false && /ski\s?erg/i.test(name)) return {name:'Straight-arm cable pulldown',det:'No SkiErg — lat/tricep pulling proxy'};
+  if(eq.row===false && /row/i.test(name) && !/bent|cable|seated/i.test(name)) return {name:'Seated cable row',det:'No row erg — pulling proxy'};
+  if(eq.wallball===false && /wall\s?ball/i.test(name)) return {name:'DB thruster',det:'No wall ball — thruster proxy'};
+  if(eq.treadmill===false && /treadmill/i.test(name)) return {name:'Outdoor run',det:'No treadmill — run outside'};
+  return null;
+}
 function renderProg(){
   const wk = parseInt(document.getElementById('wk-sel').value);
   const venue = document.getElementById('venue-sel').value;
@@ -947,8 +954,10 @@ function renderProg(){
         if(/if at shinjuku/i.test(ex.n) && eq.sled===false) return false;
         return true;
       }).map(ex=>{
-        const name=ex.n.replace(/\u{1F6F7}\s*IF AT SHINJUKU\s*\u2014\s*/u,'').replace(/IF AT SHINJUKU\s*\u2014\s*/i,'');
-        const det = personalisePlan(bandWeights(name, liftFromOneRM(name, effWk, getProgVal(ex.d, effWk))));
+        let name=ex.n.replace(/\u{1F6F7}\s*IF AT SHINJUKU\s*\u2014\s*/u,'').replace(/IF AT SHINJUKU\s*\u2014\s*/i,'');
+        let det = personalisePlan(bandWeights(name, liftFromOneRM(name, effWk, getProgVal(ex.d, effWk))));
+        const px=proxyFor(name, eq);
+        if(px){ name=px.name; det=px.det; }
         return `<div class="ex-item"><span class="ex-name">${name}</span><span class="ex-detail ${det&&det.match(/kg|km|min/)?'ex-weight':''}">${det}</span></div>`;
       }).join('');
       bodyHTML += `<div class="session-block">
@@ -1174,7 +1183,7 @@ function renderSettings(){
   document.getElementById('set-dl').value=p.deadlift_1rm_kg||'';
   document.getElementById('set-sq').value=p.squat_1rm_kg||'';
   const eq=p.equipment||{};
-  document.getElementById('set-equip').innerHTML=EQUIP_KEYS.map(([k,lbl])=>`<label style="display:flex;align-items:center;gap:6px;padding:6px;background:#141414;border-radius:8px;cursor:pointer"><input type="checkbox" id="eq-${k}" ${eq[k]?'checked':''}><span>${lbl}</span></label>`).join('');
+  document.getElementById('set-equip').innerHTML=EQUIP_KEYS.map(([k,lbl])=>`<label style="display:flex;align-items:center;gap:10px;padding:10px;background:#141414;border-radius:8px;cursor:pointer"><input type="checkbox" id="eq-${k}" ${eq[k]?'checked':''} style="width:18px;height:18px;accent-color:#C8F135;flex:0 0 auto"><span style="font-size:13px">${lbl}</span></label>`).join('');
   const sch=p.schedule||{};
   document.getElementById('set-schedule').innerHTML=DAY_ORDER.map(dk=>{
     const cur=sch[dk]||{};
