@@ -1117,7 +1117,14 @@ function renderGroup(){
   // member cards: status (countdown, projected, sessions)
   document.getElementById('group-cards').innerHTML=GROUP.members.map(m=>{
     const nm=m.profile.display_name||'Athlete';const dd=d2r(m.profile);
-    return `<div class="st-row"><div><div style="font-size:13px;font-weight:600">${nm}${m.me?' <span class="badge b-accent" style="font-size:9px">you</span>':''}</div><div style="font-size:10px;color:var(--muted)">${m.profile.division||''} ${m.profile.target_race_name?'\u00b7 '+m.profile.target_race_name:''}</div></div><div style="text-align:right"><div style="font-size:12px;color:var(--accent)">${m.proj?_hms(m.proj):'\u2014'}<span style="font-size:9px;color:var(--muted)"> proj</span></div><div style="font-size:10px;color:var(--muted)">${dd!=null?dd+'d \u00b7 ':''}${m.week} this wk</div></div></div>`;
+    const rc=m.profile.target_race_name?' \u00b7 '+m.profile.target_race_name:'';
+    return `<div style="padding:10px 12px;background:#141414;border-radius:10px;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:4px">
+        <span style="font-size:13px;font-weight:600">${nm}${m.me?' <span class="badge b-accent" style="font-size:9px">you</span>':''}</span>
+        <span style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.profile.division||''}${rc}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);white-space:nowrap"><span style="color:var(--accent);font-weight:600;font-size:13px">${m.proj?_hms(m.proj):'\u2014'}</span> proj${dd!=null?' \u00b7 '+dd+'d':''} \u00b7 ${m.week} this wk</div>
+    </div>`;
   }).join('');
   // leaderboard: 3-col best times (Open / Pro / Doubles), ranked by Open
   const lb=GROUP.members.slice().sort((a,b)=>((a.bestOpen?a.bestOpen.total_sec:1e9)-(b.bestOpen?b.bestOpen.total_sec:1e9)));
