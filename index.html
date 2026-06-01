@@ -212,7 +212,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
           <div class="metric-box">
             <div class="metric-label">Projected finish</div>
             <div class="metric-value" id="m-proj" style="font-size:26px">—</div>
-            <div class="metric-sub">open singles</div>
+            <div class="metric-sub" id="m-proj-sub">open singles</div>
           </div>
           <div class="metric-box">
             <div class="metric-label">Best open</div>
@@ -728,7 +728,8 @@ function getProgVal(val, wk){
   return '';
 }
 
-function _divClass(){ return /pro/i.test((S.profile&&S.profile.division)||'')?'pro':'open'; }
+function _divClass(){ const f=(S.profile&&S.profile.target_format)||(S.profile&&S.profile.division)||''; return /pro/i.test(f)?'pro':'open'; }
+function _projLabel(){ return _divClass()==='pro'?'pro singles':'open singles'; }
 function calcProj(){
   const singles=(S.races||[]).filter(r=>!/doubles|relay|mixed/i.test(r.category||'')&&r.total_sec);
   let base=null, baseRace=null;
@@ -785,6 +786,7 @@ function renderDash(){
   document.getElementById('m-days').textContent=(days2race()!=null?days2race():'\u2014');
   const p=calcProj();
   document.getElementById('m-proj').textContent=p?(Math.floor(p/60)+':'+(p%60<10?'0':'')+(p%60)):'\u2014';
+  const ps=document.getElementById('m-proj-sub'); if(ps) ps.textContent=_projLabel();
   const now=new Date(),mon=new Date(now);mon.setDate(now.getDate()-now.getDay()+1);
   document.getElementById('m-week').textContent=S.sessions.filter(s=>new Date(s.date)>=mon).length;
   renderPriorityGaps();renderHRVStatus();renderRadar();renderHRVChart();
@@ -1163,6 +1165,7 @@ async function importHyresult(){
     if(error){msg.textContent='fn error: '+(error.message||JSON.stringify(error));return;}
     if(!data||!data.total_sec){msg.textContent='parsed but no total: '+JSON.stringify(data).slice(0,80);return;}
     const row={user_id:UID,date:data.date||new Date().toISOString().slice(0,10),location:data.location||'Race',category:data.category||'Open',total_sec:data.total_sec,rank:data.rank||null,station_times:data.station_times||null,run_splits:data.run_splits||null};
+    if((S.races||[]).some(r=>r.total_sec===row.total_sec&&r.category===row.category&&r.location===row.location)){msg.textContent='Already imported';return;}
     const {data:ins}=await sb.from('races').insert(row).select();
     S.races=[...(S.races||[]),...(ins||[row])];
     if(data.station_times&&data.station_times.length){
