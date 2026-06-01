@@ -240,6 +240,17 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
           <div id="priority-gaps"></div>
         </div>
 
+        <div class="card" id="group-card" style="display:none">
+          <div class="card-title" id="group-title">HYROX Bras</div>
+          <div id="group-cards"></div>
+          <div class="card-title" style="margin-top:14px">Leaderboard · best singles</div>
+          <div id="group-leaderboard"></div>
+          <div class="card-title" style="margin-top:14px">Station radar</div>
+          <div class="chart-wrap" style="height:240px"><canvas id="groupRadar" role="img" aria-label="Group station radar"></canvas></div>
+          <div class="card-title" style="margin-top:14px">Weakness heatmap</div>
+          <div id="group-heatmap" style="overflow-x:auto"></div>
+        </div>
+
         <div class="card">
           <div class="card-title">HRV monitor</div>
           <div style="display:flex;gap:8px">
@@ -916,6 +927,75 @@ function renderLogList(){
 
 function _hms(sec){sec=Math.round(sec||0);const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),x=sec%60;return h+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');}
 function _mon(d){const dt=new Date(d);return dt.toLocaleString('en',{month:'short'})+' '+dt.getFullYear();}
+let _grpRadar=null;
+async function loadGroup(){
+  try{
+    const gm=await sb.from('group_members').select('group_id,user_id');
+    if(gm.error||!gm.data||!gm.data.length) return;
+    const ids=[...new Set(gm.data.map(r=>r.user_id))];
+    if(ids.length<2 && ids[0]===UID && gm.data.length<2){} // still render solo
+    const [pr,be,ra,se,gr]=await Promise.all([
+      sb.from('profiles').select('*'),
+      sb.from('benchmarks').select('*'),
+      sb.from('races').select('*'),
+      sb.from('sessions').select('user_id,date'),
+      sb.from('groups').select('*')
+    ]);
+    const mon=new Date(); mon.setDate(mon.getDate()-((mon.getDay()+6)%7)); mon.setHours(0,0,0,0);
+    const byUser=id=>({
+      profile:(pr.data||[]).find(p=>p.user_id===id)||{},
+      bench:Object.fromEntries((be.data||[]).filter(b=>b.user_id===id).map(b=>[b.station,b.best_sec])),
+      races:(ra.data||[]).filter(r=>r.user_id===id),
+      week:(se.data||[]).filter(s=>s.user_id===id&&new Date(s.date)>=mon).length
+    });
+    GROUP={
+      name:((gr.data||[])[0]||{}).name||'Group',
+      members:ids.map(id=>{const m=byUser(id);
+        const singles=m.races.filter(r=>!/doubles|relay|mixed/i.test(r.category||''));
+        const best=singles.reduce((a,b)=>(!a||b.total_sec<a.total_sec)?b:a,null);
+        return {id,me:id===UID,...m,best};
+      })
+    };
+    renderGroup();
+  }catch(e){console.warn('group load',e);}
+}
+const _STATIONS=[['SkiErg','SkiErg'],['SledPush','Sled push'],['SledPull','Sled pull'],['BurpeeBJ','Burpee'],['Row','Row'],['FarmerCarry','Farmers'],['Lunges','Lunges'],['WallBalls','Wall']];
+function renderGroup(){
+  if(!GROUP||!GROUP.members.length) return;
+  const card=document.getElementById('group-card'); if(!card) return;
+  card.style.display='';
+  document.getElementById('group-title').textContent=GROUP.name;
+  const _hms=x=>{x=Math.round(x||0);return Math.floor(x/3600)+':'+String(Math.floor((x%3600)/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');};
+  const d2r=p=>{const dt=p.target_race_date;if(!dt)return null;return Math.max(0,Math.ceil((new Date(dt)-new Date())/86400000));};
+  // member cards
+  document.getElementById('group-cards').innerHTML=GROUP.members.map(m=>{
+    const nm=m.profile.display_name||'Athlete';const dd=d2r(m.profile);
+    return `<div class="st-row"><div><div style="font-size:13px;font-weight:600">${nm}${m.me?' <span class="badge b-accent" style="font-size:9px">you</span>':''}</div><div style="font-size:10px;color:var(--muted)">${m.profile.division||''} ${m.profile.target_race_name?'\u00b7 '+m.profile.target_race_name:''}</div></div><div style="text-align:right"><div style="font-size:12px;color:var(--accent)">${m.best?_hms(m.best.total_sec):'\u2014'}</div><div style="font-size:10px;color:var(--muted)">${dd!=null?dd+'d \u00b7 ':''}${m.week} this wk</div></div></div>`;
+  }).join('');
+  // leaderboard (best singles asc)
+  const lb=GROUP.members.filter(m=>m.best).sort((a,b)=>a.best.total_sec-b.best.total_sec);
+  document.getElementById('group-leaderboard').innerHTML=lb.length?lb.map((m,i)=>`<div class="st-row"><span class="st-name">${i+1}. ${m.profile.display_name||'Athlete'}${m.me?' \u2605':''}</span><span class="st-time" style="color:var(--accent)">${_hms(m.best.total_sec)}</span><span style="font-size:10px;color:var(--muted)">${m.best.location}</span></div>`).join(''):'<div style="opacity:.5;font-size:12px;padding:8px">No singles races yet.</div>';
+  // radar overlay
+  const ctx=document.getElementById('groupRadar');
+  if(ctx){const cols=['#C8F135','#5B9CF6','#FF8A4D'];
+    const ds=GROUP.members.map((m,i)=>({label:m.profile.display_name||'A',data:_STATIONS.map(([k])=>{const v=m.bench[k];const tgt=({SkiErg:250,SledPush:175,SledPull:135,BurpeeBJ:235,Row:220,FarmerCarry:115,Lunges:240,WallBalls:230})[k];return v?Math.min(120,Math.round(tgt/v*100)):0;}),borderColor:cols[i%3],backgroundColor:cols[i%3].replace(')',',.08)').replace('#','rgba(').length?cols[i%3]+'22':cols[i%3],borderWidth:2,pointRadius:2,pointBackgroundColor:cols[i%3]}));
+    if(_grpRadar)_grpRadar.destroy();
+    _grpRadar=new Chart(ctx,{type:'radar',data:{labels:_STATIONS.map(s=>s[1]),datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:'#aaa'}}},scales:{r:{min:0,max:120,ticks:{display:false},grid:{color:'rgba(255,255,255,.06)'},angleLines:{color:'rgba(255,255,255,.06)'},pointLabels:{font:{size:9},color:'#888'}}}}});
+  }
+  // heatmap (station rows × members, fastest=green slowest=red per row)
+  const hm=document.getElementById('group-heatmap');
+  if(hm){const hdr='<div style="display:grid;grid-template-columns:90px repeat('+GROUP.members.length+',1fr);gap:2px;font-size:9px;color:var(--muted);margin-bottom:2px"><div></div>'+GROUP.members.map(m=>`<div style="text-align:center">${(m.profile.display_name||'A').split(' ')[0]}</div>`).join('')+'</div>';
+    const rows=_STATIONS.map(([k,lbl])=>{
+      const vals=GROUP.members.map(m=>m.bench[k]||null);
+      const present=vals.filter(v=>v!=null);const lo=Math.min(...present),hi=Math.max(...present);
+      const cells=vals.map(v=>{if(v==null)return '<div style="background:#1a1a1a;border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#444">\u2014</div>';
+        const t=hi===lo?0:(v-lo)/(hi-lo);const col=t<.5?`rgba(46,204,113,${.25+(.5-t)})`:`rgba(255,77,77,${.25+(t-.5)})`;
+        const mm=Math.floor(v/60),ss=v%60;return `<div style="background:${col};border-radius:3px;padding:4px;text-align:center;font-size:10px;color:#fff">${mm}:${String(ss).padStart(2,'0')}</div>`;}).join('');
+      return `<div style="display:grid;grid-template-columns:90px repeat(${GROUP.members.length},1fr);gap:2px;margin-bottom:2px"><div style="font-size:10px;color:var(--muted);align-self:center">${lbl}</div>${cells}</div>`;
+    }).join('');
+    hm.innerHTML=hdr+rows;
+  }
+}
 function deriveStats(){
   const R=S.races||[];
   const open=R.filter(r=>/open/i.test(r.category||''));
@@ -1028,6 +1108,7 @@ function init(){
   renderDash();
   renderLogList();
   renderRaces();
+  loadGroup();
   document.getElementById('wk-sel').value = curWeek();
   // default log date
   document.getElementById('l-date').value = new Date().toISOString().slice(0,10);
@@ -1038,7 +1119,7 @@ function init(){
 const SB_URL='https://pzxxuvrutzmmfygwswmm.supabase.co';
 const SB_KEY='sb_publishable_ctO9ZxqBsT86QuYMczyp2w_dGUjTJSB';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
-let UID=null,SB_EMAIL='',_syncT=null;
+let UID=null,SB_EMAIL='',_syncT=null,GROUP=null;
 const _m2s=v=>{if(v==null||v==='')return null;const p=String(v).split(':');return p.length===2?(+p[0])*60+(+p[1]):Math.round(parseFloat(v));};
 const _s2m=x=>{if(x==null)return '';const m=Math.floor(x/60),k=x%60;return m+':'+String(k).padStart(2,'0');};
 const _uuid=x=>/^[0-9a-f]{8}-/.test(String(x||''));
