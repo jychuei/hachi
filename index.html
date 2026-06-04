@@ -690,11 +690,12 @@ const TYPE_COLORS = { Run:'#5B9CF6', Gym:'#4ADE80', F45:'#FFB547', Compromised:'
 
 // ── STATE ─────────────────────────────────────────────────────────────────
 const S = { sessions:[], benchmarks:{}, hrv:{history:[]}, newRaces:[], races:[], profile:{} };
+function _dedupeS(arr){const seen=new Set();return (arr||[]).filter(s=>{const k=(s.date||'')+'|'+(s.type||'')+'|'+(s.dur||s.duration_min||'');if(seen.has(k))return false;seen.add(k);return true;});}
 function saveS(){ try{ localStorage.setItem('hachi_v3', JSON.stringify(S)); }catch{} }
 function loadS(){
   try{
     const d = localStorage.getItem('hachi_v3');
-    if(d){ const p=JSON.parse(d); S.sessions=p.sessions||[]; S.benchmarks=p.benchmarks||{}; S.races=p.races||[]; S.profile=p.profile||{}; S.hrv=p.hrv||{history:[]}; S.newRaces=p.newRaces||[]; }
+    if(d){ const p=JSON.parse(d); S.sessions=_dedupeS(p.sessions||[]); S.benchmarks=p.benchmarks||{}; S.races=p.races||[]; S.profile=p.profile||{}; S.hrv=p.hrv||{history:[]}; S.newRaces=p.newRaces||[]; }
   }catch{}
 }
 
@@ -1407,7 +1408,7 @@ async function loadFromSupabase(){
     sb.from('hrv').select('*').order('date'),
     sb.from('races').select('*').eq('user_id',UID),
     sb.from('profiles').select('*').eq('user_id',UID).maybeSingle()]);
-  if(!se.error)S.sessions=(se.data||[]).map(_toSess);
+  if(!se.error)S.sessions=_dedupeS((se.data||[]).map(_toSess));
   if(!be.error)S.benchmarks=Object.fromEntries((be.data||[]).map(r=>[r.station,r.best_sec]));
   if(!hv.error)S.hrv={history:(hv.data||[]).map(r=>({date:r.date,val:Number(r.value)}))};
   if(!ra.error)S.races=ra.data||[];
