@@ -1463,7 +1463,7 @@ function _toSess(r){return{id:r.id,date:r.date,type:r.type,runType:r.run_type,di
 async function loadFromSupabase(){
   if(!UID)return;
   const [se,be,hv,ra,pr]=await Promise.all([
-    sb.from('sessions').select('*').order('date'),
+    sb.from('sessions').select('*').eq('user_id',UID).order('date'),
     sb.from('benchmarks').select('*'),
     sb.from('hrv').select('*').order('date'),
     sb.from('races').select('*').eq('user_id',UID),
