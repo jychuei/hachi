@@ -1443,7 +1443,7 @@ function _showLogin(msg){
     const email=document.getElementById('sb-email').value.trim();
     if(!email){_st.textContent='Enter your email';return;}
     _btn.disabled=true;_btn.innerHTML='<span class="sb-spin"></span>Sending\u2026';_st.textContent='Signing in\u2026';
-    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split('#')[0]}});
+    const {error}=const password=document.getElementById('sb-pass').value;if(!password){_st.textContent='Enter your password';_btn.disabled=false;_btn.textContent='Sign in';return;}await sb.auth.signInWithPassword({email,password});
     if(error){_st.textContent=error.message;_btn.disabled=false;_btn.textContent='Send magic link';}
     else{_st.textContent='\u2713 Signed in';}
   };
