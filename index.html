@@ -1393,7 +1393,7 @@ function init(){
 /* ── SUPABASE DATA LAYER ───────────────── */
 const SB_URL='https://pzxxuvrutzmmfygwswmm.supabase.co';
 const SB_KEY='sb_publishable_ctO9ZxqBsT86QuYMczyp2w_dGUjTJSB';
-const sb=window.supabase.createClient(SB_URL,SB_KEY);
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storage:window.localStorage}});
 let UID=null,SB_EMAIL='',_syncT=null,GROUP=null;
 const _m2s=v=>{if(v==null||v==='')return null;const p=String(v).split(':');return p.length===2?(+p[0])*60+(+p[1]):Math.round(parseFloat(v));};
 const _s2m=x=>{if(x==null)return '';const m=Math.floor(x/60),k=x%60;return m+':'+String(k).padStart(2,'0');};
@@ -1435,17 +1435,17 @@ function _showLogin(msg){
   if(document.getElementById('sb-login'))return;
   const d=document.createElement('div');d.id='sb-login';
   d.style.cssText='position:fixed;inset:0;z-index:9999;background:#0A0A0A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;font-family:inherit;padding:24px';
-  d.innerHTML='<style>@keyframes sbspin{to{transform:rotate(360deg)}}.sb-spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;border-radius:50%;animation:sbspin .6s linear infinite;vertical-align:-2px;margin-right:8px}#sb-go{transition:transform .08s,opacity .15s}#sb-go:active{transform:scale(.97)}#sb-go:disabled{opacity:.7;cursor:default}</style><div style="font-size:32px;letter-spacing:4px">\u516B HACHI</div><div class="sb-msg" style="opacity:.6;font-size:13px;min-height:18px;text-align:center">'+(msg||'Sign in to sync')+'</div><input id="sb-email" type="email" placeholder="email" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:1px solid #333;background:#141414;color:#fff;font-size:16px"><button id="sb-go" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:0;background:#fff;color:#000;font-weight:600;font-size:15px">Send magic link</button>';
+  d.innerHTML='<style>@keyframes sbspin{to{transform:rotate(360deg)}}.sb-spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;border-radius:50%;animation:sbspin .6s linear infinite;vertical-align:-2px;margin-right:8px}#sb-go{transition:transform .08s,opacity .15s}#sb-go:active{transform:scale(.97)}#sb-go:disabled{opacity:.7;cursor:default}</style><div style="font-size:32px;letter-spacing:4px">\u516B HACHI</div><div class="sb-msg" style="opacity:.6;font-size:13px;min-height:18px;text-align:center">'+(msg||'Sign in to sync')+'</div><input id="sb-email" type="email" placeholder="email" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:1px solid #333;background:#141414;color:#fff;font-size:16px"><input id="sb-pass" type="password" placeholder="password" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:1px solid #333;background:#141414;color:#fff;font-size:16px"><button id="sb-go" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:0;background:#fff;color:#000;font-weight:600;font-size:15px">Sign in</button>';
   document.body.appendChild(d);
   const _btn=document.getElementById('sb-go'),_st=d.querySelector('.sb-msg');
   _btn.onclick=async()=>{
     if(_btn.disabled)return;
     const email=document.getElementById('sb-email').value.trim();
     if(!email){_st.textContent='Enter your email';return;}
-    _btn.disabled=true;_btn.innerHTML='<span class="sb-spin"></span>Sending\u2026';_st.textContent='Sending magic link\u2026';
+    _btn.disabled=true;_btn.innerHTML='<span class="sb-spin"></span>Sending\u2026';_st.textContent='Signing in\u2026';
     const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split('#')[0]}});
     if(error){_st.textContent=error.message;_btn.disabled=false;_btn.textContent='Send magic link';}
-    else{_st.textContent='\u2713 Check your email for the link.';_btn.textContent='Link sent';}
+    else{_st.textContent='\u2713 Signed in';}
   };
 }
 async function _onSession(sess){
