@@ -24,6 +24,7 @@ Return ONLY strict JSON, no markdown, no prose:
   "calories": 0,                   // null if absent
   "primary_benefit": "",           // e.g. "Threshold (High Aerobic)", null if absent
   "effort_10": 0,                  // perceived effort x/10, null if absent
+  "title": "",                     // workout title/name if shown, e.g. "Track Sprints", "Easy Run", null if absent
   "surge_summary": ""              // one line describing lap pacing shape, e.g. "warmup 5:25, surge block laps 4-9 (4:27-5:10), final push 4:49"
 }
 If a field is unreadable use null. Never invent values.`;
@@ -55,10 +56,18 @@ Deno.serve(async (req) => {
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!anthropicKey) return json({ error: "ANTHROPIC_API_KEY not set" }, 500);
 
-  const content: any[] = images.map((b64) => ({
-    type: "image",
-    source: { type: "base64", media_type: "image/jpeg", data: b64.replace(/^data:image\/\w+;base64,/, "") },
-  }));
+  const content: any[] = images.map((b64) => {
+    const m = b64.match(/^data:(image\/\w+);base64,/);
+    const data = b64.replace(/^data:image\/\w+;base64,/, "");
+    let media_type = m ? m[1] : "image/jpeg";
+    if (!m) {
+      if (data.startsWith("iVBORw0KGgo")) media_type = "image/png";
+      else if (data.startsWith("R0lGOD")) media_type = "image/gif";
+      else if (data.startsWith("UklGR")) media_type = "image/webp";
+      else if (data.startsWith("/9j/")) media_type = "image/jpeg";
+    }
+    return { type: "image", source: { type: "base64", media_type, data } };
+  });
   content.push({ type: "text", text: EXTRACT_PROMPT });
 
   const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -88,6 +97,16 @@ Deno.serve(async (req) => {
     const t = String(p.type || "Run").toLowerCase();
     p.type = TYPES.find((x) => x.toLowerCase() === t) || "Run";
   }
+  p.run_type = null;
+  if (p.type === "Run") {
+    const hay = `${p.title || ""} ${p.primary_benefit || ""}`.toLowerCase();
+    if (/sprint|interval|track|vo2|anaerobic|speed|repeat|fartlek/.test(hay)) p.run_type = "Intervals";
+    else if (/threshold|tempo|lactate/.test(hay)) p.run_type = "Threshold";
+    else if (/hill/.test(hay)) p.run_type = "Hill sprints";
+    else if (/long/.test(hay)) p.run_type = "Long run";
+    else if (/recovery|easy/.test(hay)) p.run_type = "Easy";
+    else if (/base|low aerobic|aerobic/.test(hay)) p.run_type = "Z2";
+  }
 
   const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -95,8 +114,10 @@ Deno.serve(async (req) => {
   const userId = au?.users?.find((u: any) => u.email === email)?.id;
   if (!userId) return json({ error: "user not found: " + email }, 404);
 
-  const { data: dup } = await sb.from("sessions").select("id")
-    .eq("user_id", userId).eq("date", p.date).eq("type", p.type).eq("duration_min", p.duration_min).maybeSingle();
+  let dupQ = sb.from("sessions").select("id")
+    .eq("user_id", userId).eq("date", p.date).eq("type", p.type).eq("duration_min", p.duration_min);
+  dupQ = p.distance_km == null ? dupQ.is("distance_km", null) : dupQ.eq("distance_km", p.distance_km);
+  const { data: dup } = await dupQ.maybeSingle();
   if (dup) return json({ ok: true, deduped: true, session_id: dup.id, summary: summarize(p) });
 
   const notesParts = [
@@ -109,6 +130,7 @@ Deno.serve(async (req) => {
     user_id: userId,
     date: p.date,
     type: p.type,
+    run_type: p.run_type,
     duration_min: p.duration_min,
     distance_km: p.distance_km,
     hr: p.avg_hr ?? null,

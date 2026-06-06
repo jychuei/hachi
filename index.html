@@ -1013,11 +1013,12 @@ async function importWorkoutShot(e){
   e.target.value='';
 }
 function openLogModal(){
+  _editId=null;
   document.getElementById('log-modal').classList.remove('hidden');
   document.getElementById('l-date').value = new Date().toISOString().slice(0,10);
   toggleFields();
 }
-function closeLogModal(){ document.getElementById('log-modal').classList.add('hidden'); }
+function closeLogModal(){ _editId=null; document.getElementById('log-modal').classList.add('hidden'); }
 
 function toggleFields(){
   const t = document.getElementById('l-type').value;
@@ -1035,7 +1036,7 @@ function getStations(){
 
 function saveSession(){
   const sess = {
-    id: Date.now().toString(),
+    id: _editId || Date.now().toString(),
     date: document.getElementById('l-date').value,
     type: document.getElementById('l-type').value,
     runType: document.getElementById('l-run-type')?.value,
@@ -1048,7 +1049,15 @@ function saveSession(){
     notes: document.getElementById('l-notes')?.value,
     stations: getStations(),
   };
-  S.sessions.push(sess);
+  if(_editId){
+    sess.needsReview=false;
+    const i=S.sessions.findIndex(x=>x.id===_editId);
+    if(i>=0)S.sessions[i]=sess; else S.sessions.push(sess);
+    if(_uuid(sess.id)){try{sb.from('sessions').update({needs_review:false}).eq('id',sess.id);}catch(e){}}
+    _editId=null;
+  } else {
+    S.sessions.push(sess);
+  }
   Object.entries(sess.stations).forEach(([k,v])=>{ if(!S.benchmarks[k]||v<S.benchmarks[k]) S.benchmarks[k]=v; });
   saveS();
   closeLogModal();
@@ -1059,23 +1068,73 @@ function saveSession(){
   ['s-ski','s-sp','s-sl','s-bbj','s-row','s-fc','s-lu','s-wb'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
 }
 
-function deleteSession(id){
+let _editId=null;
+async function deleteSession(id){
   S.sessions = S.sessions.filter(s=>s.id!==id);
+  if(_uuid(id)){try{await sb.from('sessions').delete().eq('id',id);}catch(e){}}
   saveS(); renderLogList(); renderDash();
+}
+async function confirmPending(id){
+  const s=S.sessions.find(x=>x.id===id); if(!s)return;
+  s.needsReview=false; saveS();
+  if(_uuid(id)){try{await sb.from('sessions').update({needs_review:false}).eq('id',id);}catch(e){}}
+  renderLogList(); renderDash();
+}
+function rejectPending(id){ if(confirm('Delete this session?')) deleteSession(id); }
+function editPending(id){
+  const s=S.sessions.find(x=>x.id===id); if(!s)return;
+  _editId=id;
+  document.getElementById('log-modal').classList.remove('hidden');
+  const set=(i,v)=>{const el=document.getElementById(i);if(el)el.value=v==null?'':v;};
+  set('l-date',s.date);
+  const t=document.getElementById('l-type'); if(t)t.value=s.type||'';
+  toggleFields();
+  set('l-dist',s.dist);set('l-pace',s.pace);set('l-hr',s.hr);set('l-dur',s.dur);
+  set('l-rpe',s.rpe);set('l-lifts',s.lifts);set('l-notes',s.notes);
+  const rt=document.getElementById('l-run-type'); if(rt)rt.value=s.runType||'';
+  const sm={SkiErg:'s-ski',SledPush:'s-sp',SledPull:'s-sl',BurpeeBJ:'s-bbj',Row:'s-row',FarmerCarry:'s-fc',Lunges:'s-lu',WallBalls:'s-wb'};
+  Object.entries(sm).forEach(([k,i])=>set(i, s.stations&&s.stations[k]!=null?_s2m(s.stations[k]):''));
 }
 
 function renderLogList(){
   const el = document.getElementById('log-list');
   if(!S.sessions.length){ el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:24px">No sessions yet. Tap + to log a workout.</div>'; return; }
   const fmtDate=d=>{const dt=new Date(d),t=new Date();const diff=Math.round((t.setHours(0,0,0,0)-new Date(d).setHours(0,0,0,0))/86400000);return diff===0?'Today':diff===1?'Yesterday':diff<7?dt.toLocaleDateString('en',{weekday:'long'}):dt.toLocaleDateString('en',{day:'numeric',month:'short'});};
-  const sorted=[...S.sessions].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,30);
+  const metricsOf=s=>[s.dist?`${s.dist}km`:'',s.pace?`${s.pace}/km`:'',s.hr?`${s.hr}bpm`:'',s.dur?`${s.dur}min`:''].filter(Boolean);
+  const pending=S.sessions.filter(s=>s.needsReview).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  let html='';
+  if(pending.length){
+    html+=`<div style="font-size:10px;color:var(--amber);letter-spacing:.5px;text-transform:uppercase;margin:0 0 6px">${pending.length} to review</div>`;
+    html+=pending.map(s=>{
+      const col=TYPE_COLORS[s.type]||'#666';
+      const metrics=metricsOf(s);
+      const extra=[s.lifts,s.notes].filter(Boolean).join(' · ');
+      return `<div style="background:#1a1505;border-radius:10px;border-left:3px solid var(--amber);padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1;min-width:0;cursor:pointer" onclick="editPending('${s.id}')">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+            <span class="badge" style="background:var(--amber)22;color:var(--amber);font-size:9px">REVIEW</span>
+            <span style="color:${col};font-weight:600;font-size:13px">${s.type}</span>
+            <span style="color:var(--muted);font-size:11px">${fmtDate(s.date)}</span>
+            ${s.runType?`<span style="color:var(--muted);font-size:11px">${s.runType}</span>`:''}
+          </div>
+          ${metrics.length?`<div style="font-size:12px;color:#ddd">${metrics.join(' · ')}</div>`:''}
+          ${extra?`<div style="font-size:11px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${extra}</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button style="padding:2px 7px;font-size:12px;border-radius:6px;border:0;background:#0e2415;color:var(--green);cursor:pointer" onclick="confirmPending('${s.id}')">✓</button>
+          <button style="padding:2px 7px;font-size:11px;border-radius:6px;border:0;background:#241414;color:#FF4D4D;cursor:pointer" onclick="rejectPending('${s.id}')">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  const sorted=S.sessions.filter(s=>!s.needsReview).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,30);
   let lastGroup='';
-  el.innerHTML = sorted.map(s=>{
+  html += sorted.map(s=>{
     const col = TYPE_COLORS[s.type]||'#666';
     const rpeCol = s.rpe>=8?'var(--red)':s.rpe>=6?'var(--amber)':'var(--green)';
     const grp=fmtDate(s.date); let head='';
     if(grp!==lastGroup){lastGroup=grp;head=`<div style="font-size:10px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin:12px 0 6px">${grp}</div>`;}
-    const metrics=[s.dist?`${s.dist}km`:'',s.pace?`${s.pace}/km`:'',s.hr?`${s.hr}bpm`:'',s.dur?`${s.dur}min`:''].filter(Boolean);
+    const metrics=metricsOf(s);
     const extra=[s.lifts,s.notes].filter(Boolean).join(' · ');
     return `${head}<div style="background:#141414;border-radius:10px;border-left:3px solid ${col};padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
       <div style="flex:1;min-width:0">
@@ -1092,6 +1151,7 @@ function renderLogList(){
       </div>
     </div>`;
   }).join('');
+  el.innerHTML = html;
 }
 
 // ── RACES ─────────────────────────────────────────────────────────────────
@@ -1399,7 +1459,7 @@ const _m2s=v=>{if(v==null||v==='')return null;const p=String(v).split(':');retur
 const _s2m=x=>{if(x==null)return '';const m=Math.floor(x/60),k=x%60;return m+':'+String(k).padStart(2,'0');};
 const _uuid=x=>/^[0-9a-f]{8}-/.test(String(x||''));
 function _toRow(o){return{...(_uuid(o.id)?{id:o.id}:{}),user_id:UID,date:o.date||null,type:o.type||null,run_type:o.runType||null,distance_km:o.dist?parseFloat(o.dist):null,pace_sec:_m2s(o.pace),hr:o.hr?parseInt(o.hr):null,rpe:o.rpe?parseInt(o.rpe):null,duration_min:o.dur?parseInt(o.dur):null,lifts_text:o.lifts||null,stations:o.stations||{},notes:o.notes||null};}
-function _toSess(r){return{id:r.id,date:r.date,type:r.type,runType:r.run_type,dist:r.distance_km!=null?String(r.distance_km):'',pace:_s2m(r.pace_sec),hr:r.hr!=null?String(r.hr):'',rpe:r.rpe!=null?String(r.rpe):'',dur:r.duration_min!=null?String(r.duration_min):'',lifts:r.lifts_text||'',notes:r.notes||'',stations:r.stations||{}};}
+function _toSess(r){return{id:r.id,date:r.date,type:r.type,runType:r.run_type,dist:r.distance_km!=null?String(r.distance_km):'',pace:_s2m(r.pace_sec),hr:r.hr!=null?String(r.hr):'',rpe:r.rpe!=null?String(r.rpe):'',dur:r.duration_min!=null?String(r.duration_min):'',lifts:r.lifts_text||'',notes:r.notes||'',stations:r.stations||{},needsReview:!!r.needs_review,source:r.source||''};}
 async function loadFromSupabase(){
   if(!UID)return;
   const [se,be,hv,ra,pr]=await Promise.all([
@@ -1444,7 +1504,7 @@ function _showLogin(msg){
     if(!email){_st.textContent='Enter your email';return;}
     _btn.disabled=true;_btn.innerHTML='<span class="sb-spin"></span>Sending\u2026';_st.textContent='Signing in\u2026';
     const password=document.getElementById('sb-pass').value;if(!password){_st.textContent='Enter your password';_btn.disabled=false;_btn.textContent='Sign in';return;}const {error}=await sb.auth.signInWithPassword({email,password});
-    if(error){_st.textContent=error.message;_btn.disabled=false;_btn.textContent='Send magic link';}
+    if(error){_st.textContent=error.message;_btn.disabled=false;_btn.textContent='Sign in';}
     else{_st.textContent='\u2713 Signed in';}
   };
 }
