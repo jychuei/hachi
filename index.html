@@ -102,8 +102,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .session-title { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
 .ex-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.04); font-size: 12px; gap: 8px; }
 .ex-item:last-child { border-bottom: none; }
-.ex-name { color: var(--sub); flex-shrink: 0; }
-.ex-detail { color: var(--text); text-align: right; font-family: 'DM Mono', monospace; font-size: 11px; }
+.ex-name { color: var(--sub); min-width: 0; overflow-wrap: anywhere; }
+.ex-detail { color: var(--text); text-align: right; font-family: 'DM Mono', monospace; font-size: 11px; min-width: 0; overflow-wrap: anywhere; white-space: normal; }
 .ex-weight { color: var(--accent); font-weight: 500; }
 
 /* RACE CARD */
