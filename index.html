@@ -710,7 +710,7 @@ function loadS(){
 const s2m = s => { const m=Math.floor(s/60),ss=s%60; return m+':'+(ss<10?'0':'')+ss; };
 const m2s = str => { if(!str||!str.includes(':'))return 0; const[m,s]=str.split(':'); return parseInt(m||0)*60+parseInt(s||0); };
 const days2race = () => { const d=(S.profile&&S.profile.target_race_date); if(!d) return null; return Math.max(0, Math.ceil((new Date(d)-new Date())/86400000)); };
-const curWeek = () => { const ps=(S.profile&&S.profile.programme_start)?new Date(S.profile.programme_start):new Date('2026-05-18'); return Math.max(1, Math.min(13, Math.ceil((new Date()-ps)/604800000)+1)); };
+const curWeek = () => { const d=days2race(); if(d!=null) return PHASE_WK[racePhase()]; const ps=(S.profile&&S.profile.programme_start)?new Date(S.profile.programme_start):new Date('2026-05-18'); return Math.max(1, Math.min(13, Math.ceil((new Date()-ps)/604800000)+1)); };
 const phaseOf = w => w<=3?'Base':w===4?'Deload':w<=7?'Threshold':w===8?'Deload':w<=11?'Race Specific':w===12?'Deload':'Taper';
 const phaseColor = p => ({Base:'#5B9CF6',Deload:'#FFB547',Threshold:'#C8F135','Race Specific':'#FF6B9D',Peak:'#BF5AF2',Taper:'#FF9500'}[p]||'#666');
 
@@ -787,10 +787,11 @@ function goTo(page, btn){
 
 // ── HEADER ────────────────────────────────────────────────────────────────
 function updateHeader(){
-  const d=days2race(),w=curWeek(),ph=phaseOf(w);
+  const d=days2race(),w=curWeek();
+  const ph = d==null ? ('W'+w+' \u00b7 '+phaseOf(w)) : (d<=6?'Race week':{base:'Base',build:'Build',peak:'Peak',taper:'Taper'}[racePhase()]);
   const rn=(S.profile&&S.profile.target_race_name)||'race';
   document.getElementById('hdr-countdown').textContent=(d!=null?d+' days \u00b7 '+rn:'No race set');
-  document.getElementById('hdr-phase').textContent='W'+w+' \u00b7 '+ph;
+  document.getElementById('hdr-phase').textContent=ph;
   applyProfile();
 }
 
@@ -1442,10 +1443,31 @@ function seedWeekSessions(){
   saveS();
 }
 
+// ── MANUAL BACKFILL (Jason only, idempotent — dedupe by date|type|dur|dist) ──
+function backfillManual(){
+  if(!UID || !UID.startsWith('7319b958')) return;
+  const rows = [
+    { date:'2026-06-08', type:'Gym', runType:'', dist:'', pace:'', hr:'115', rpe:'7', dur:'32', lifts:'', stations:{},
+      notes:'SLED (Mon Shinjuku). WU 13:34 (row 500m + mobility + 102.5kg/20m primer). TEST 153.75kg 30m UNBROKEN x4 ~60s/set, 90s rest. OVERLOAD 206.25kg 20m x3 (10m unbroken then half-lengths). Work 8:30. Breathless end of each set = breath-holding under load, not cardio (HR 115). 263cal.' },
+    { date:'2026-06-08', type:'Gym', runType:'', dist:'', pace:'', hr:'144', rpe:'8', dur:'24', lifts:'', stations:{},
+      notes:'WALL BALLS 6kg (Mon). Max unbroken 45 (PB, was 40). 100 as 2x25 + 5x10 /20s rest. EMOM 12x10 ~27s/set. 265 reps total. ~10min work / ~14min rest. Peak HR 165. 300cal.' },
+    { date:'2026-06-08', type:'Gym', runType:'', dist:'', pace:'', hr:'156', rpe:'8', dur:'10', lifts:'', stations:{},
+      notes:'FINISHER Row+WB (Mon). 4 rounds row 250m + 20 WB, continuous, no rest. 10:14. Rows 1:03 to 1:17, WB faded rounds 2-3. 141cal.' },
+    { date:'2026-06-09', type:'Run', runType:'Easy', dist:'7.06', pace:'5:25', hr:'152', rpe:'6', dur:'38', lifts:'', stations:{},
+      notes:'Komazawa clean run. Legs sore post Mon leg-heavy day. 5:25 @152bpm vs 5:01 @152 fresh = ~24s/km fatigue tax, normal DOMS response. 513cal. Aerobic banked, not a quality day.' },
+  ];
+  const key = s => [s.date, s.type, s.dur, s.dist||''].join('|');
+  const have = new Set(S.sessions.map(key));
+  let added = 0;
+  rows.forEach(r => { if(!have.has(key(r))){ S.sessions.push({ id: Date.now().toString()+Math.random().toString(36).slice(2,6), ...r }); added++; } });
+  if(added){ saveS(); renderLogList(); renderDash(); }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────
 function init(){
   loadS();
   seedWeekSessions();
+  backfillManual();
   updateHeader();
   renderDash();
   renderLogList();
