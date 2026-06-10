@@ -371,6 +371,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
         </div>
       </div>
 
+      <div id="pg-fuel" class="hidden">
+        <div class="section-header">Fuel</div>
+        <div id="fuel-content"></div>
+      </div>
+
       <div id="pg-settings" class="hidden">
         <div class="section-header">Settings</div>
         <div class="card">
@@ -424,6 +429,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
     <button class="nav-btn" onclick="goTo('bench',this)" id="nav-bench">
       <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
       BENCH
+    </button>
+    <button class="nav-btn" onclick="goTo('fuel',this)" id="nav-fuel">
+      <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      FUEL
     </button>
     <button class="nav-btn" onclick="goTo('settings',this)" id="nav-settings">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -533,18 +542,177 @@ const RACE_DATE = new Date('2026-07-05');
 const TARGETS = { SkiErg:250, SledPush:175, SledPull:135, BurpeeBJ:235, Row:220, FarmerCarry:115, Lunges:240, WallBalls:230 };
 
 // ── PROGRAMME DATA ────────────────────────────────────────────────────────
-const PROG = {
+const PROG_STD = {
+  Mon:{ label:'Monday', sessions:[
+    { type:'Gym', label:'Primary — Strength + Station (one hard day)', title:'Pick a strength emphasis, then stations',
+      exs:[
+        {n:'Warm-up',d:'10 min bike/row easy · banded hip openers · 2×10 squat-to-throw'},
+        {n:'━━ STRENGTH — choose ONE ━━',d:'A heavy barbell (fresh legs, full kit) · B Stairmaster→lunges (back-sensitive or low-impact week) · C maintenance only (legs cooked / pre-race). Bevilacqua model: heavy is not required every week — low-impact keeps you progressing without breaking down.'},
+        {n:'A · Box jump (plyo, first)',d:{1:'3×6 — full reset, step down',4:'3×8',7:'3×8 + 3×6 depth drop',10:'4×8 + 3×6 depth drop',13:'3×6 sharpening'}},
+        {n:'A · Back squat',d:{1:'4×10 @ 60kg',4:'4×10 @ 65kg',7:'4×8 @ 75kg',10:'4×8 @ 85kg',13:'3×8 @ 75kg'}},
+        {n:'A · Deadlift',d:{1:'4×8 @ 75kg',4:'4×8 @ 82kg',7:'4×8 @ 90kg',10:'4×6 @ 100kg',13:'3×8 @ 85kg'}},
+        {n:'A · Bulgarian SS',d:{1:'3×10/leg @ 16kg',4:'3×10/leg @ 18kg',7:'3×10/leg @ 20kg',10:'3×10/leg @ 24kg',13:'3×10/leg @ 20kg'}},
+        {n:'A · Farmer carry',d:{1:'3×30m @ 30kg/h',4:'3×40m @ 32kg/h',7:'3×50m @ 36kg/h',10:'3×50m @ 40kg/h',13:'3×50m @ 36kg/h'}},
+        {n:'B · Stairmaster ladder',d:'15–20 min — 3 min single-step → 2 min double-step, repeat ×3. Z3–4, minimal spinal load. Bevilacqua staple for engine without pounding.'},
+        {n:'B · Walking lunges (straight off the stair)',d:'3×20m @ 20kg unbroken — compromised-leg finish. This is the swap vs a heavy lift OR vs a hard run when the back/legs need sparing.'},
+        {n:'C · Maintenance lift',d:'~15 min, keep strength not build it: trap-bar DL or RDL 3×5 + Bulgarian SS or step-up 3×6/leg + 1 pull (row/pull-up). RPE 7–8, no accessories, no burn.'},
+        {n:'━━ STATION — always ━━',d:'Rotate weekly so all 8 get touched outside Thu: sled/WB this week, ski/row/lunge next.'},
+        {n:'🛷 Sled push',d:'TEST: 30m unbroken ×4 @ race weight (152kg open), ~60s/set, 90s rest. Then overload 3×20m @ +15–20kg only if test felt strong (10m unbroken then half-lengths ok).'},
+        {n:'🏐 Wall balls (6kg)',d:'Max unbroken (beat 45) → 100 as 25/25 then 10×5 @20s rest → EMOM 12×10. ~265 reps. Log max unbroken.'},
+        {n:'🚣 Row (if time)',d:'4×250m @ 1000m goal pace, 60s rest. Neutral spine at catch (L5-S1), legs→hips→arms.'},
+        {n:'Breathing cue',d:'Sled: rhythmic exhale every 2–3 steps, never hold past 2 strides. Breathlessness late = breath-holding under load, not cardio (HR sat ~115). Fix the breathing, not the fitness.'},
+      ]
+    },
+    { type:'Run', label:'Secondary PM (optional)', title:'Easy Z2 flush',
+      exs:[{n:'Z2 jog',d:'20–30 min, HR <70%, flat / outside'},{n:'Or walk',d:'Hill walk if legs heavy'}]
+    }
+  ]},
+  Tue:{ label:'Tuesday', sessions:[
+    { type:'Run', label:'Primary AM', title:'Long Z2 run (Garmin base)',
+      exs:[
+        {n:'Warm-up',d:'10 min easy walk/jog'},
+        {n:'Main run',d:{1:'45 min @ 5:20–5:30/km',4:'55 min',7:'65 min',10:'70 min',13:'50 min'}},
+        {n:'Target HR',d:'<75% max, nasal breathing'},
+        {n:'Outside',d:'Run outside — self-paced is more race-specific than the treadmill, and you run quicker outdoors.'},
+        {n:'Low-impact swap',d:'Back/legs need sparing? Sub 60–75 min easy bike or Stairmaster for the engine stimulus without the pounding (Bevilacqua subs bike volume).'},
+        {n:'Autoregulate',d:'Space hard runs by feel: 1 day between in a good week, 2–3 when recovery is low. Do not force the grid.'},
+        {n:'Summer',d:'Early morning, hydrate with electrolytes'},
+      ]
+    },
+    { type:'Run', label:'Secondary PM (optional)', title:'Threshold intervals (clean, outside)',
+      exs:[
+        {n:'Warm-up',d:'2 min easy jog'},
+        {n:'Main set',d:{1:'4×800m @ 4:45/km, 90s rest',4:'5×800m @ 4:40/km',7:'4×1000m @ 4:35/km',10:'5×1000m @ 4:25/km',13:'3×1000m @ 4:30/km'}},
+        {n:'Venue',d:'Track preferred — 4×200m = 800m, manageable lengths'},
+      ]
+    }
+  ]},
+  Wed:{ label:'Wednesday', sessions:[
+    { type:'F45', label:'Primary AM — Fixed 7:15', title:'F45 Cardio (Wed = cardio format)',
+      exs:[
+        {n:'Format',d:'Cardio with structured rest — HR ~120–130, low-moderate intensity'},
+        {n:'Role',d:'Active recovery + movement — bridges Tue run and Thu compromised'},
+        {n:'PM session',d:'Wednesday PM SkiErg/Row block is the real quality session today'},
+      ]
+    },
+    { type:'Gym', label:'Secondary PM (optional)', title:'SkiErg + Row specific block',
+      exs:[
+        {n:'SkiErg',d:{1:'4×500m @ 2:10/500m target',4:'4×600m',7:'4×750m',10:'4×1000m',13:'3×1000m'}},
+        {n:'Row',d:{1:'4×500m @ 1:55/500m target',4:'4×600m',7:'4×750m',10:'4×1000m',13:'3×1000m'}},
+        {n:'Cable row',d:'4×20 explosive, heavy — SkiErg pulling strength'},
+        {n:'Sub (no erg)',d:'6×400m treadmill @ 3:55/km + lat pulldown 3×15'},
+        {n:'OR clean intervals (outside)',d:'6–8×1km @ goal race pace, short rest — the run-quality option if legs are fresh and weather is good.'},
+        {n:'OR Stairmaster→lunges (low-impact)',d:'Back-sensitive week: 15–20 min stair ladder (single→double step) → 3×20m walking lunge @ 20kg. Same swap as Monday B — use vs a hard run when sparing the spine.'},
+      ]
+    },
+    { type:'Pre-coaching', label:'Optional pre-coaching (Vamos)', title:'Sled / WB block (15–25 min)',
+      exs:[
+        {n:'Option A',d:'4×25m sled push @ 152kg (open race weight) + 4×25m pull @ 103kg, 60s rest'},
+        {n:'Option B',d:'3×30 wall balls (6kg open / 9kg pro) + 3×20m lunge (20kg) unbroken'},
+        {n:'Option C',d:'2 rounds: sled push 152kg 25m + pull 103kg 25m → 10 WB → 20m lunge, 90s rest'},
+        {n:'Log',d:'Record max unbroken wall balls each week'},
+      ]
+    }
+  ]},
+  Thu:{ label:'Thursday', sessions:[
+    { type:'Compromised', label:'Primary AM — Key session', title:'Compromised run + station',
+      exs:[
+        {n:'🏐 Wall ball benchmark (do after warm-up)',d:'100 reps @ 6kg unbroken or best split — time it. Once per month fresh, every other week fatigued. Log both for gap analysis.'},
+        {n:'Structure',d:{1:'5 rounds, 90s rest',4:'5 rounds, 80s rest',7:'6 rounds, 75s rest',10:'7 rounds, 60s sec',13:'5 rounds race pace'}},
+        {n:'⚡ Bounding warm-up (PLYO)',d:{1:'3×30m before starting rounds — exaggerated running strides, drive knees',4:'3×30m',7:'4×30m',10:'4×30m',13:'3×30m'}},
+        {n:'Each round',d:'800m run @ 4:35–4:40/km → 1 station immediately'},
+        {n:'RULE',d:'Run 1 ≥4:35 always — cap treadmill at 4:35'},
+        {n:'Stations (std)',d:'Rotate: treadmill 400m / BBJ 30r / farmer carry 80m @ 24kg / thruster 20r'},
+        {n:'Gym only',d:'Compromised stays in the gym — the stations live here. Outdoor running is for the clean run days (Tue/Wed PM/Fri), not this session.'},
+        {n:'Stations (Shinjuku/Vamos)',d:'Rotate: sled push 2×25m @ 152kg (race weight) / SkiErg 500m / row 500m / WB 30r @ 6kg / lunge 20kg×25m / sled pull 25m @ 103kg (race weight)'},
+        {n:'Sled weight note',d:'Open: push 152kg total / pull 103kg total. Pro: push 202kg / pull 153kg. Thursday = race weight always. Monday = overload (heavier).'},
+        {n:'Finish',d:'ALWAYS end with 400m run — trains Run 8 durability'},
+        {n:'WB note',d:'Fresh time = ceiling. Fatigued time = race reality. Gap should narrow over 13 weeks.'},
+      ]
+    },
+    { type:'Recovery', label:'Secondary PM (optional)', title:'Recovery protocol',
+      exs:[
+        {n:'Massage',d:'60 min weekly slot'},
+        {n:'Mobility',d:'20 min: hip flexors, thoracic, shoulders'},
+        {n:'Cold plunge',d:'2–5 min if available'},
+      ]
+    }
+  ]},
+  Fri:{ label:'Friday', sessions:[
+    { type:'Gym', label:'Primary AM', title:'Upper body — SkiErg/Row focus (legs rest post Thu)',
+      exs:[
+        {n:'Warm-up',d:'Arm circles 20f/20b, band pull-apart 2×15, scapular pull-ups 2×8, cat-cow 10r, thoracic rotation 10/side'},
+        {n:'A. Seated cable row',d:'4×12 @ 62kg — explosive pull, 2-sec return, wide overhand grip'},
+        {n:'A. Lat pulldown',d:'3×12 @ moderate — wide grip, initiate with lats not biceps'},
+        {n:'A. Single-arm DB row',d:'3×10/side @ 24–28kg — brace core, full range'},
+        {n:'A. Face pull',d:'3×15 @ light — rotator cuff health, don\'t skip'},
+        {n:'B. DB shoulder press',d:'3×12 @ 16–18kg/hand — only if L5-S1 neutral'},
+        {n:'B. DB incline press',d:'3×10 @ 22–24kg'},
+        {n:'B. Push-up to failure',d:'2×max — chest to floor, controlled'},
+        {n:'C. Dead hang',d:'3×max — grip endurance, no straps'},
+        {n:'C. Plank',d:'3×45 sec'},
+        {n:'C. Hollow hold',d:'3×30 sec — core bracing for sled posture'},
+        {n:'Note',d:'Skip overhead press if back talking after yesterday\'s sled session'},
+      ]
+    },
+    { type:'Run', label:'Secondary PM (optional)', title:'Hill sprints or track',
+      exs:[
+        {n:'Hill sprints',d:{1:'6×100m @ 85% effort, walk down 90s',4:'7×100m',7:'8×100m',10:'8×100m + 2×200m',13:'5×100m'}},
+        {n:'Or track',d:'4×200m at controlled fast pace'},
+        {n:'Condition',d:'Only if <32°C and legs not heavy'},
+      ]
+    }
+  ]},
+  Sat:{ label:'Saturday', sessions:[
+    { type:'F45', label:'Primary AM — Fixed 9:30', title:'F45 Hybrid (Sat = hybrid format)',
+      exs:[
+        {n:'Format',d:'Hybrid strength + cardio — higher HR and load than Wednesday'},
+        {n:'Odd weeks',d:'Full effort — quality hybrid session'},
+        {n:'Even weeks',d:'75% effort — preserve legs for PM race sim or intervals'},
+        {n:'Pre-F45 option',d:'15–20 min easy Z2 from 9:10 if energy good'},
+      ]
+    },
+    { type:'Run', label:'Secondary PM (recommended)', title:'Intervals or race sim',
+      exs:[
+        {n:'Odd weeks',d:{1:'6×1000m @ 4:05/km, 2:30 rest',4:'6×1000m @ 4:00/km',7:'6×1000m @ 3:58/km',10:'6×1000m @ 3:55/km',13:'4×1000m sharp'}},
+        {n:'Even weeks',d:'Run-station-run combos at race weight (full HYROX sim ONLY when Vamos kit is available — do not force a full sim without the equipment, it is not worth chasing).'},
+        {n:'Race sim rule',d:'Time every split — Run 8 must match Run 4'},
+      ]
+    }
+  ]},
+  Sun:{ label:'Sunday', sessions:[
+    { type:'Recovery', label:'AM — Fixed (Coaching)', title:'Coaching — no training'},
+    { type:'Recovery', label:'Secondary PM (optional)', title:'Yoga or easy jog',
+      exs:[
+        {n:'Yoga (odd weeks)',d:'60–75 min — hip flexors, thoracic, breathwork'},
+        {n:'Jog (even weeks)',d:'30 min easy Z2, HR <65% after 3pm'},
+        {n:'HRV rule',d:'If recovery <50% → yoga only'},
+      ]
+    },
+    { type:'Pre-coaching', label:'Optional — before Sunday coaching (F45 or Vamos sled)', title:'Sled / WB / Lunge — 15–25 min',
+      exs:[
+        {n:'When available',d:'F45 sled before coaching, or Vamos if en route'},
+        {n:'Option A — Sled only',d:'4×25m sled push @ 152kg (open race weight) + 4×25m pull @ 103kg, 60s rest'},
+        {n:'Option B — WB + Lunge',d:'3×30 wall balls (6kg open race weight) unbroken + 3×20m lunge (20kg) — log max unbroken WB'},
+        {n:'Option C — Combined',d:'2 rounds: sled push 152kg 25m + pull 103kg 25m → 10 WB → 20m lunge, 90s rest'},
+        {n:'Sunday rule',d:'Legs heavy from Saturday — Option B preferred. No sled if race sim day prior.'},
+        {n:'Log',d:'Record max unbroken wall balls each week — this is your WB benchmark'},
+      ]
+    }
+  ]}
+};
+const PROG_WARRIORS = {
   Mon:{ label:'Monday', sessions:[
     { type:'Gym', label:'WARRIORS 1 — Strength + new stations', title:'Heavy day + sled pull / BBJ priority',
       exs:[
         {n:'Warm-up',d:'10 min row/bike easy · hip openers · 2×10 squat-to-throw · 1 sled push @ ~50%'},
         {n:'Strength — choose ONE',d:'A heavy barbell (fresh legs) · B Stairmaster→lunges (back-sensitive) · C maintenance (trap-bar DL 3×5 + split squat 3×6/leg + 1 pull)'},
-        {n:'A · Back squat',d:{10:'4×6 @ 85kg',13:'2×5 @ 70kg — taper, crisp not heavy'}},
-        {n:'A · Deadlift',d:{10:'4×5 @ 100kg',13:'2×5 @ 80kg'}},
-        {n:'A · Bulgarian SS',d:{10:'3×8/leg @ 24kg',13:'2×8/leg @ 18kg'}},
-        {n:'🪢 Sled pull (NEW — rope)',d:{10:'5×12.5m @ race weight (78kg open). Verify rope setup first visit. Hips low, hand-over-hand, walk back hard.',13:'3×12.5m @ race weight — technique touch only'}},
-        {n:'🐸 Burpee broad jump (NEW — turf)',d:{10:'4×10 reps, race standard (chest down, two-foot jump). Smooth > fast; find your sustainable rhythm.',13:'2×10 — rhythm rehearsal'}},
-        {n:'🛷 Sled push',d:{10:'3×track-length unbroken @ race weight (152kg), rhythmic exhale every 2-3 steps. Measure track length vs 12.5m race lengths.',13:'2× @ race weight, breathing pattern only'}},
+        {n:'A · Back squat',d:'wk1: 4×6 @ 85kg · wk2: 3×6 @ 80kg'},
+        {n:'A · Deadlift',d:'wk1: 4×5 @ 100kg · wk2: 3×5 @ 90kg'},
+        {n:'A · Bulgarian SS',d:'wk1: 3×8/leg @ 24kg · wk2: 2×8/leg @ 20kg'},
+        {n:'🪢 Sled pull (NEW — rope)',d:'wk1: 5×12.5m @ race weight (78kg open) · wk2: 4×12.5m. Verify rope setup first visit. Hips low, hand-over-hand, walk back hard.'},
+        {n:'🐸 Burpee broad jump (NEW — turf)',d:'wk1: 4×10 · wk2: 3×10, race standard (chest down, two-foot jump). Smooth > fast; find your sustainable rhythm.'},
+        {n:'🛷 Sled push',d:'wk1: 3× · wk2: 2× track-length unbroken @ race weight (152kg), rhythmic exhale every 2-3 steps. Measure track length vs 12.5m race lengths.'},
         {n:'Floor check',d:'Note sled friction vs Renaissance — low-friction floors flatter you vs race carpet. Calibrate effort, not just weight.'},
       ]
     },
@@ -553,8 +721,9 @@ const PROG = {
   Tue:{ label:'Tuesday', sessions:[
     { type:'Run', label:'Primary — clean run (outdoor first)', title:'Threshold',
       exs:[
-        {n:'A · OUTDOOR (default)',d:{10:'25-30 min continuous @ threshold (~4:45-4:55/km) or 3×10 min, 2 min float. Komazawa.',13:'15-20 min @ threshold — keep the feel, cut the volume'}},
-        {n:'B · RAIN SWAP → Warriors',d:'SkiErg/Row Z3 pyramid: 4×(500m ski + 500m row) @ 2:00-2:05/500m, 60s rest. NOT the treadmill.'},
+        {n:'A · OUTDOOR (default)',d:'wk1: 25-30 min continuous @ threshold (~4:45-4:55/km) or 3×10 min, 2 min float · wk2: 20 min. Komazawa.'},
+        {n:'A2 · ENGINE SWAP (joints sore — same stimulus, zero impact)',d:'Bike 4×8 min @ threshold HR (same HR as the run, 2 min easy between) OR SkiErg/Row Z3 pyramid 4×(500m ski + 500m row) @ 2:00-2:05. Engine does not care which machine.'},
+        {n:'B · RAIN SWAP → Warriors',d:'Same as A2 indoors. NOT the treadmill.'},
         {n:'Autoregulate',d:'Legs still wrecked from Mon? Swap with Wed (easy day first). 1-3 days between hard runs by feel.'},
       ]
     }
@@ -565,7 +734,7 @@ const PROG = {
     },
     { type:'Compromised', label:'WARRIORS 2 — mid-morning double (turf quietest)', title:'Second session — choose by legs',
       exs:[
-        {n:'A · Compromised (default if legs good)',d:{10:'5 rounds: 400m turf shuttles/erg (NOT treadmill) → station → repeat. Rotate: SkiErg 500m / row 500m / WB 30 / sled push / lunges 25m @ 20kg.',13:'3 rounds, race pace, stop while fresh'}},
+        {n:'A · Compromised (default if legs good)',d:'wk1: 5 rounds · wk2: 4 rounds: 400m turf shuttles/erg (NOT treadmill) → station → repeat. Rotate: SkiErg 500m / row 500m / WB 30 / sled push / lunges 25m @ 20kg.'},
         {n:'B · Stairmaster→lunges (post-F45 legs heavy)',d:'15-20 min stair ladder (single→double) → 3×20m walking lunge @ 20kg. Low-impact quality, no spinal reload.'},
         {n:'Why the double',d:'Polarized stacking: pile hard on an already-hard day so Tue/Thu stay quality. Mid-morning = quiet turf.'},
         {n:'Run legs',d:'Shuttle pace = compromised race effort (HR 160s). Running ON station legs is the point, not the metres.'},
@@ -576,9 +745,9 @@ const PROG = {
   Thu:{ label:'Thursday', sessions:[
     { type:'Gym', label:'WARRIORS 3 — Station volume', title:'Wall ball reassessment + erg quality',
       exs:[
-        {n:'🏐 WB reassessment (wk1 Thu = 2-week checkpoint)',d:{10:'Fresh max unbroken (target: beat 45) · rest 3 min · race scheme 100: 20/15/15/10×5, micro-rests at wall 3-5s · EMOM 10×12. Log max + which chunk failed.',13:'Race scheme 60 reps @ race tempo only — groove, not build'}},
-        {n:'🚣 Row',d:{10:'4×500m @ 1:58-2:02, 60s rest. Neutral catch (L5-S1).',13:'2×500m @ race pace'}},
-        {n:'⛷ SkiErg',d:{10:'4×250m @ goal pace, 45s rest. Exhale on the pull.',13:'2×250m'}},
+        {n:'🏐 WB reassessment (wk1 Thu = 2-week checkpoint)',d:'wk1 (2-wk checkpoint): fresh max unbroken (target: beat 45) · rest 3 min · race scheme 100: 20/15/15/10×5, micro-rests at wall 3-5s · EMOM 10×12. Log max + which chunk failed. wk2: race scheme 60 reps @ tempo only.'},
+        {n:'🚣 Row',d:'wk1: 4×500m · wk2: 3×500m @ 1:58-2:02, 60s rest. Neutral catch (L5-S1).'},
+        {n:'⛷ SkiErg',d:'wk1: 4×250m · wk2: 3×250m @ goal pace, 45s rest. Exhale on the pull.'},
         {n:'🪢 Sled pull touch',d:'2×12.5m @ race weight — frequency on the new station while you have it'},
       ]
     }
@@ -586,7 +755,7 @@ const PROG = {
   Fri:{ label:'Friday', sessions:[
     { type:'Run', label:'Primary — clean run (outdoor first)', title:'Intervals or hills',
       exs:[
-        {n:'A · OUTDOOR intervals (default)',d:{10:'6×1km @ goal race pace (4:45-5:00/km), 90s jog rest. Track or Komazawa.',13:'4×400m @ race pace + strides — sharp, short'}},
+        {n:'A · OUTDOOR intervals (default)',d:'wk1: 6×1km · wk2: 4×1km @ goal race pace (4:45-5:00/km), 90s jog rest. Track or Komazawa.'},
         {n:'A2 · OUTDOOR hills (alternate weeks / by feel)',d:'8×100m hill @ hard effort, walk-back recovery. The 13% incline near home.'},
         {n:'B · RAIN SWAP → Warriors',d:'Stairmaster ladder 15-20 min (single→double step) → 3×20m walking lunge @ 20kg. Low-impact quality.'},
       ]
@@ -598,7 +767,7 @@ const PROG = {
     },
     { type:'Race Sim', label:'WARRIORS 4 — PM circuit (only if fresh post-F45)', title:'The sim replacement',
       exs:[
-        {n:'Circuit',d:{10:'4-5 rounds @ RACE PACE (shortened — F45 was this AM): 500m erg or 400m turf shuttle → station (rotate: sled push / WB 25 / row 500 / ski 500 / lunges / BBJ 8) → 60-90s rest. ~35 min. Skip entirely if F45 emptied you — Sunday rests either way.',13:'RACE WEEK: if this is Jul 4 — race day, Hangzhou. Week prior (Jun 27): F45 only, no circuit.'}},
+        {n:'Circuit',d:'wk1: 4-5 rounds · wk2: 3-4 rounds @ RACE PACE (shortened — F45 was this AM): 500m erg or 400m turf shuttle → station (rotate: sled push / WB 25 / row 500 / ski 500 / lunges / BBJ 8) → 60-90s rest. ~35 min. Skip entirely if F45 emptied you — Sunday rests either way.'},
         {n:'Splits',d:'Time every station + every run leg. Round 6 must match round 2 — the Run 8 rule in miniature.'},
       ]
     }
@@ -606,13 +775,50 @@ const PROG = {
   Sun:{ label:'Sunday', sessions:[
     { type:'Run', label:'Long Z2 OR full rest', title:'By feel',
       exs:[
-        {n:'A · Long Z2 (if recovered)',d:{10:'50-60 min easy, HR <75%, Komazawa. Skip without guilt if the week bit hard.',13:'30-40 min easy max — taper'}},
+        {n:'A · Long Z2 (if recovered)',d:'wk1: 50-60 min · wk2: 40 min easy, HR <75%, Komazawa. Skip without guilt if the week bit hard.'},
+        {n:'A2 · ENGINE Z2 (default if feet/knees/back talking)',d:'Bike 60-75 min OR 40 min bike + 20 min ski/row, all HR <75%. Identical aerobic stimulus, zero pounding — the Bevilacqua/Tvrdik masters model.'},
         {n:'B · Full rest (default if in doubt)',d:'Walk, mobility, sauna. At 45 in a 5-visit week, rest IS training.'},
       ]
     },
     { type:'Other', label:'Recovery', title:'Non-negotiables', exs:[{n:'Sleep',d:'8h target'},{n:'Mobility',d:'15 min hips/ankles/T-spine'},{n:'Fuel',d:'Protein 2g/kg, carbs up on circuit days'}] }
   ]},
 };
+const PROG_TAPER = {
+  Mon:{ label:'Monday', sessions:[{ type:'Run', label:'Race week', title:'Easy shakeout', exs:[
+    {n:'Run',d:'20-25 min very easy + 4×20s strides. Nothing that creates fatigue.'},{n:'Mobility',d:'15 min hips/ankles'}]}]},
+  Tue:{ label:'Tuesday', sessions:[{ type:'Run', label:'Race week', title:'Last quality touch', exs:[
+    {n:'Sharpener',d:'3-4×400m @ race pace, full recovery. Done. Finish wanting more.'}]}]},
+  Wed:{ label:'Wednesday', sessions:[{ type:'F45', label:'Optional', title:'F45 light OR rest', exs:[
+    {n:'If F45',d:'Go light — coast the class, HR low, no station heroics. Skip without guilt.'}]}]},
+  Thu:{ label:'Thursday', sessions:[{ type:'Run', label:'Race week', title:'Easy + travel prep', exs:[
+    {n:'Run',d:'15-20 min easy + strides. Pack: shoes, kit, splits written out, fuel plan.'}]}]},
+  Fri:{ label:'Friday', sessions:[{ type:'Other', label:'Travel / rest', title:'Hangzhou', exs:[
+    {n:'Travel day',d:'Walk, hydrate, early night. 10-15 min easy jog on arrival if it helps the legs.'}]}]},
+  Sat:{ label:'Saturday', sessions:[{ type:'Race Sim', label:'RACE DAY', title:'HYROX Hangzhou — Jul 4', exs:[
+    {n:'Plan',d:'Line up conservative, write splits on hand, negative-split. Sled: breathe every 2-3 steps. WB: 20/15/15/10×5, micro-rests at wall.'},
+    {n:'Trust it',d:'The work is done. Pacing discipline beats heroics.'}]}]},
+  Sun:{ label:'Sunday', sessions:[{ type:'Other', label:'Post-race', title:'Recover + celebrate', exs:[
+    {n:'Recovery',d:'Walk, eat, sleep. Programme reassessment + gym access review next week.'}]}]},
+};
+const PROG_POSTRACE = {
+  Mon:{ label:'Monday', sessions:[{ type:'Other', label:'Post-Hangzhou', title:'Recovery block — programme TBD', exs:[
+    {n:'This week',d:'Easy movement only: walks, easy spins, mobility. No structured training for 4-7 days post-race.'},
+    {n:'Next',d:'Reassess gym access (Warriors? Vamos? Renaissance?) and rebuild ENGINE-LED: 1-2 race-specific runs max, aerobic volume on bike/ski/row/stairs (masters model — joints are the constraint, not the engine).'}]}]},
+  Tue:{ label:'Tuesday', sessions:[{ type:'Other', label:'Recovery', title:'Easy movement', exs:[{n:'Move',d:'Walk or easy spin 20-30 min, by feel'}]}]},
+  Wed:{ label:'Wednesday', sessions:[{ type:'F45', label:'Optional', title:'F45 easy (if itching)', exs:[{n:'If F45',d:'Coast it. No racing the class.'}]}]},
+  Thu:{ label:'Thursday', sessions:[{ type:'Other', label:'Recovery', title:'Easy movement', exs:[{n:'Move',d:'Walk, mobility, sauna'}]}]},
+  Fri:{ label:'Friday', sessions:[{ type:'Run', label:'Optional', title:'First easy jog (if legs say yes)', exs:[{n:'Run',d:'15-20 min very easy, flat'}]}]},
+  Sat:{ label:'Saturday', sessions:[{ type:'F45', label:'Optional', title:'F45 easy', exs:[{n:'If F45',d:'Light. Recovery is still the block.'}]}]},
+  Sun:{ label:'Sunday', sessions:[{ type:'Other', label:'Rest', title:'Full rest', exs:[{n:'Rest',d:'Plan the next block this week.'}]}]},
+};
+function activeProg(){
+  const t=new Date(); const d=t.toISOString().slice(0,10);
+  if(d<='2026-06-14') return PROG_STD;            // current plan through this Sunday
+  if(d<='2026-06-28') return PROG_WARRIORS;       // Warriors block, 2 weeks from Mon Jun 15
+  if(d<='2026-07-05') return PROG_TAPER;          // race week -> Hangzhou Sat Jul 4
+  return PROG_POSTRACE;                           // post-race: recover + reassess
+}
+const PROG = new Proxy({}, { get:(_,k)=>activeProg()[k], ownKeys:()=>Reflect.ownKeys(activeProg()), getOwnPropertyDescriptor:(_,k)=>({enumerable:true,configurable:true,value:activeProg()[k]}) });
 const DAY_ORDER = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const TYPE_COLORS = { Run:'#5B9CF6', Gym:'#4ADE80', F45:'#FFB547', Compromised:'#FF6B9D', 'Pre-coaching':'#BF5AF2', Recovery:'#666', 'Race Sim':'#C8F135' };
 
@@ -695,6 +901,77 @@ function calcProj(){
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────
 let curPage = 'dashboard';
+// ── FUEL ──────────────────────────────────────────────────
+const FUEL = {
+  principles: [
+    ['Protein every meal','~30g/meal, 2g/kg/day. Eggs, chicken, fish, tofu, natto, Greek yogurt — the lever that fixes "generally ok but disorganised".'],
+    ['Carbs follow training','Hard day (Mon/Wed/Thu/Sat): genmai/pasta/soba at 2 meals. Easy day: 1 meal. Race week: carbs UP, fibre down from Thursday.'],
+    ['Colour at lunch + dinner','Cabbage, tomato, cucumber, spinach/komatsuna, moyashi, kinoko — grab the cut-veg packs, zero prep shame.'],
+    ['Repeat base, rotate protein + sauce','Same genmai/salad base all week; rotate salmon → saba → chicken → tofu → shrimp and the sauce (miso/ponzu/sesame/kimchi/curry). Variety without thinking.'],
+    ['Stove-only is fine','Everything below is one pan, one pot, or zero-cook. 15 min max.'],
+  ],
+  days: [
+    {d:'Monday', tag:'HARD — strength + stations', meals:[
+      ['Breakfast','Natto + raw egg + genmai bowl, nori, sesame · banana · coffee'],
+      ['Lunch','Oyakodon (one-pan chicken + egg over genmai, mentsuyu) + cut-veg pack side'],
+      ['Dinner','Pan-seared salmon · genmai · miso soup (instant ok) · spinach goma-ae (boil 1 min, sesame dressing)'],
+      ['Around training','Onigiri 30-60 min pre · protein + banana within 30 min post'],
+    ]},
+    {d:'Tuesday', tag:'Run day', meals:[
+      ['Breakfast','Greek yogurt (Oikos/Parthéno) + banana + honey + muesli'],
+      ['Lunch','Your upgraded salad: cabbage/cucumber/tomato/avocado + pasta + tuna → swap tuna for sashimi-pack salmon or boiled egg ×2, sesame dressing + kimchi on the side'],
+      ['Dinner','Saba (canned miso-ni or grill-pack) over genmai · quick cucumber-wakame sunomono · miso soup'],
+    ]},
+    {d:'Wednesday', tag:'HARD — F45 + double', meals:[
+      ['Breakfast','3-egg + tofu + kimchi scramble (one pan) · genmai · banana'],
+      ['Lunch','Cold soba + tuna + grated yam or okra + egg · mentsuyu (June-friendly, 5 min)'],
+      ['Dinner','Your upgraded fried rice: genmai + eggs + frozen seafood mix (shrimp/squid) + frozen mixed veg + ginger · edamame side'],
+      ['Around training','Carbs at both AM meals — double day'],
+    ]},
+    {d:'Thursday', tag:'HARD — compromised', meals:[
+      ['Breakfast','Greek yogurt + frozen blueberries + muesli · boiled eggs ×2 (batch Sunday)'],
+      ['Lunch','Chicken thigh teriyaki one-pan (soy/mirin/sugar) + genmai + shredded cabbage'],
+      ['Dinner','Salmon + tomato + garlic pasta (one pot) · side salad'],
+    ]},
+    {d:'Friday', tag:'Run day', meals:[
+      ['Breakfast','Natto + egg + genmai · banana'],
+      ['Lunch','Sashimi pack + genmai + cut-veg + miso soup (zero cook, conbini/supermarket)'],
+      ['Dinner','Tofu + moyashi + kinoko + chicken stir-fry, oyster-soy · small genmai'],
+    ]},
+    {d:'Saturday', tag:'HARD — F45 + circuit', meals:[
+      ['Breakfast','Pre-class: banana + onigiri · Post: Greek yogurt + honey'],
+      ['Lunch','Shrimp + egg fried genmai (your classic, seafood twist) + edamame'],
+      ['Dinner','Chicken + vegetable curry (Java/Vermont roux, one pot) over genmai — batch it: tomorrow’s lunch'],
+    ]},
+    {d:'Sunday', tag:'Easy / rest', meals:[
+      ['Breakfast','Eggs any style · avocado · toast or genmai'],
+      ['Lunch','Leftover curry'],
+      ['Dinner','Light: tofu + wakame miso soup · grilled fish pack · small genmai · sunomono'],
+      ['Prep (15 min)','Boil 6 eggs · cook 3 days genmai (fridge) · buy the week’s cut-veg + protein'],
+    ]},
+  ],
+  raceweek: 'Race week (Jun 29+): carbs up ~20% Wed-Fri, fibre + raw veg DOWN from Thu, hydrate + electrolytes daily. Fri (travel): familiar food only, nothing new. Race morning: onigiri ×2 + banana + coffee, 2.5-3h before start.'
+};
+function renderFuel(){
+  const el=document.getElementById('fuel-content'); if(!el) return;
+  let h='<div class="card"><div class="session-title" style="margin-bottom:10px">Principles</div>';
+  h+=FUEL.principles.map(p=>`<div class="ex-item"><span class="ex-name">${p[0]}</span><span class="ex-detail">${p[1]}</span></div>`).join('');
+  h+='</div>';
+  const today=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+  h+=FUEL.days.map(day=>{
+    const is=day.d.startsWith(today);
+    return `<div class="card" style="${is?'border:1px solid var(--accent);':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span class="session-title" style="margin:0">${day.d}${is?' · today':''}</span>
+        <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${day.tag}</span>
+      </div>
+      ${day.meals.map(m=>`<div class="ex-item"><span class="ex-name">${m[0]}</span><span class="ex-detail">${m[1]}</span></div>`).join('')}
+    </div>`;
+  }).join('');
+  h+=`<div class="card" style="border-left:3px solid var(--amber)"><div class="ex-item"><span class="ex-name">Race week</span><span class="ex-detail">${FUEL.raceweek}</span></div></div>`;
+  el.innerHTML=h;
+}
+
 function goTo(page, btn){
   document.querySelectorAll('[id^="pg-"]').forEach(el=>el.classList.add('hidden'));
   document.getElementById('pg-'+page).classList.remove('hidden');
@@ -703,6 +980,7 @@ function goTo(page, btn){
   curPage = page;
   document.getElementById('main').scrollTop = 0;
   if(page==='programme') renderProg();
+  if(page==='fuel') renderFuel();
   if(page==='bench'){ renderBench(); renderProjBig(); }
   if(page==='settings') renderSettings();
 }
