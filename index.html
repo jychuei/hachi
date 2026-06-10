@@ -526,7 +526,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.1"></script>
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────
 const RACE_DATE = new Date('2026-07-05');
@@ -535,162 +535,83 @@ const TARGETS = { SkiErg:250, SledPush:175, SledPull:135, BurpeeBJ:235, Row:220,
 // ── PROGRAMME DATA ────────────────────────────────────────────────────────
 const PROG = {
   Mon:{ label:'Monday', sessions:[
-    { type:'Gym', label:'Primary — Strength + Station (one hard day)', title:'Pick a strength emphasis, then stations',
+    { type:'Gym', label:'WARRIORS 1 — Strength + new stations', title:'Heavy day + sled pull / BBJ priority',
       exs:[
-        {n:'Warm-up',d:'10 min bike/row easy · banded hip openers · 2×10 squat-to-throw'},
-        {n:'━━ STRENGTH — choose ONE ━━',d:'A heavy barbell (fresh legs, full kit) · B Stairmaster→lunges (back-sensitive or low-impact week) · C maintenance only (legs cooked / pre-race). Bevilacqua model: heavy is not required every week — low-impact keeps you progressing without breaking down.'},
-        {n:'A · Box jump (plyo, first)',d:{1:'3×6 — full reset, step down',4:'3×8',7:'3×8 + 3×6 depth drop',10:'4×8 + 3×6 depth drop',13:'3×6 sharpening'}},
-        {n:'A · Back squat',d:{1:'4×10 @ 60kg',4:'4×10 @ 65kg',7:'4×8 @ 75kg',10:'4×8 @ 85kg',13:'3×8 @ 75kg'}},
-        {n:'A · Deadlift',d:{1:'4×8 @ 75kg',4:'4×8 @ 82kg',7:'4×8 @ 90kg',10:'4×6 @ 100kg',13:'3×8 @ 85kg'}},
-        {n:'A · Bulgarian SS',d:{1:'3×10/leg @ 16kg',4:'3×10/leg @ 18kg',7:'3×10/leg @ 20kg',10:'3×10/leg @ 24kg',13:'3×10/leg @ 20kg'}},
-        {n:'A · Farmer carry',d:{1:'3×30m @ 30kg/h',4:'3×40m @ 32kg/h',7:'3×50m @ 36kg/h',10:'3×50m @ 40kg/h',13:'3×50m @ 36kg/h'}},
-        {n:'B · Stairmaster ladder',d:'15–20 min — 3 min single-step → 2 min double-step, repeat ×3. Z3–4, minimal spinal load. Bevilacqua staple for engine without pounding.'},
-        {n:'B · Walking lunges (straight off the stair)',d:'3×20m @ 20kg unbroken — compromised-leg finish. This is the swap vs a heavy lift OR vs a hard run when the back/legs need sparing.'},
-        {n:'C · Maintenance lift',d:'~15 min, keep strength not build it: trap-bar DL or RDL 3×5 + Bulgarian SS or step-up 3×6/leg + 1 pull (row/pull-up). RPE 7–8, no accessories, no burn.'},
-        {n:'━━ STATION — always ━━',d:'Rotate weekly so all 8 get touched outside Thu: sled/WB this week, ski/row/lunge next.'},
-        {n:'🛷 Sled push',d:'TEST: 30m unbroken ×4 @ race weight (152kg open), ~60s/set, 90s rest. Then overload 3×20m @ +15–20kg only if test felt strong (10m unbroken then half-lengths ok).'},
-        {n:'🏐 Wall balls (6kg)',d:'Max unbroken (beat 45) → 100 as 25/25 then 10×5 @20s rest → EMOM 12×10. ~265 reps. Log max unbroken.'},
-        {n:'🚣 Row (if time)',d:'4×250m @ 1000m goal pace, 60s rest. Neutral spine at catch (L5-S1), legs→hips→arms.'},
-        {n:'Breathing cue',d:'Sled: rhythmic exhale every 2–3 steps, never hold past 2 strides. Breathlessness late = breath-holding under load, not cardio (HR sat ~115). Fix the breathing, not the fitness.'},
+        {n:'Warm-up',d:'10 min row/bike easy · hip openers · 2×10 squat-to-throw · 1 sled push @ ~50%'},
+        {n:'Strength — choose ONE',d:'A heavy barbell (fresh legs) · B Stairmaster→lunges (back-sensitive) · C maintenance (trap-bar DL 3×5 + split squat 3×6/leg + 1 pull)'},
+        {n:'A · Back squat',d:{10:'4×6 @ 85kg',13:'2×5 @ 70kg — taper, crisp not heavy'}},
+        {n:'A · Deadlift',d:{10:'4×5 @ 100kg',13:'2×5 @ 80kg'}},
+        {n:'A · Bulgarian SS',d:{10:'3×8/leg @ 24kg',13:'2×8/leg @ 18kg'}},
+        {n:'🪢 Sled pull (NEW — rope)',d:{10:'5×12.5m @ race weight (78kg open). Verify rope setup first visit. Hips low, hand-over-hand, walk back hard.',13:'3×12.5m @ race weight — technique touch only'}},
+        {n:'🐸 Burpee broad jump (NEW — turf)',d:{10:'4×10 reps, race standard (chest down, two-foot jump). Smooth > fast; find your sustainable rhythm.',13:'2×10 — rhythm rehearsal'}},
+        {n:'🛷 Sled push',d:{10:'3×track-length unbroken @ race weight (152kg), rhythmic exhale every 2-3 steps. Measure track length vs 12.5m race lengths.',13:'2× @ race weight, breathing pattern only'}},
+        {n:'Floor check',d:'Note sled friction vs Renaissance — low-friction floors flatter you vs race carpet. Calibrate effort, not just weight.'},
       ]
     },
-    { type:'Run', label:'Secondary PM (optional)', title:'Easy Z2 flush',
-      exs:[{n:'Z2 jog',d:'20–30 min, HR <70%, flat / outside'},{n:'Or walk',d:'Hill walk if legs heavy'}]
-    }
+    { type:'Run', label:'PM optional', title:'Easy Z2 flush', exs:[{n:'Z2 jog or walk',d:'20-30 min, HR <70%, outside'}] }
   ]},
   Tue:{ label:'Tuesday', sessions:[
-    { type:'Run', label:'Primary AM', title:'Long Z2 run (Garmin base)',
+    { type:'Run', label:'Primary — clean run (outdoor first)', title:'Threshold',
       exs:[
-        {n:'Warm-up',d:'10 min easy walk/jog'},
-        {n:'Main run',d:{1:'45 min @ 5:20–5:30/km',4:'55 min',7:'65 min',10:'70 min',13:'50 min'}},
-        {n:'Target HR',d:'<75% max, nasal breathing'},
-        {n:'Outside',d:'Run outside — self-paced is more race-specific than the treadmill, and you run quicker outdoors.'},
-        {n:'Low-impact swap',d:'Back/legs need sparing? Sub 60–75 min easy bike or Stairmaster for the engine stimulus without the pounding (Bevilacqua subs bike volume).'},
-        {n:'Autoregulate',d:'Space hard runs by feel: 1 day between in a good week, 2–3 when recovery is low. Do not force the grid.'},
-        {n:'Summer',d:'Early morning, hydrate with electrolytes'},
-      ]
-    },
-    { type:'Run', label:'Secondary PM (optional)', title:'Threshold intervals (clean, outside)',
-      exs:[
-        {n:'Warm-up',d:'2 min easy jog'},
-        {n:'Main set',d:{1:'4×800m @ 4:45/km, 90s rest',4:'5×800m @ 4:40/km',7:'4×1000m @ 4:35/km',10:'5×1000m @ 4:25/km',13:'3×1000m @ 4:30/km'}},
-        {n:'Venue',d:'Track preferred — 4×200m = 800m, manageable lengths'},
+        {n:'A · OUTDOOR (default)',d:{10:'25-30 min continuous @ threshold (~4:45-4:55/km) or 3×10 min, 2 min float. Komazawa.',13:'15-20 min @ threshold — keep the feel, cut the volume'}},
+        {n:'B · RAIN SWAP → Warriors',d:'SkiErg/Row Z3 pyramid: 4×(500m ski + 500m row) @ 2:00-2:05/500m, 60s rest. NOT the treadmill.'},
+        {n:'Autoregulate',d:'Legs still wrecked from Mon? Swap with Wed (easy day first). 1-3 days between hard runs by feel.'},
       ]
     }
   ]},
   Wed:{ label:'Wednesday', sessions:[
-    { type:'F45', label:'Primary AM — Fixed 7:15', title:'F45 Cardio (Wed = cardio format)',
-      exs:[
-        {n:'Format',d:'Cardio with structured rest — HR ~120–130, low-moderate intensity'},
-        {n:'Role',d:'Active recovery + movement — bridges Tue run and Thu compromised'},
-        {n:'PM session',d:'Wednesday PM SkiErg/Row block is the real quality session today'},
-      ]
+    { type:'F45', label:'Primary AM (fixed 7:15)', title:'F45 cardio — Z2/engine',
+      exs:[{n:'Class',d:'Ride the class; keep it aerobic where you can. This is the engine slot, not a race.'}]
     },
-    { type:'Gym', label:'Secondary PM (optional)', title:'SkiErg + Row specific block',
+    { type:'Compromised', label:'WARRIORS 2 — mid-morning double (turf quietest)', title:'Second session — choose by legs',
       exs:[
-        {n:'SkiErg',d:{1:'4×500m @ 2:10/500m target',4:'4×600m',7:'4×750m',10:'4×1000m',13:'3×1000m'}},
-        {n:'Row',d:{1:'4×500m @ 1:55/500m target',4:'4×600m',7:'4×750m',10:'4×1000m',13:'3×1000m'}},
-        {n:'Cable row',d:'4×20 explosive, heavy — SkiErg pulling strength'},
-        {n:'Sub (no erg)',d:'6×400m treadmill @ 3:55/km + lat pulldown 3×15'},
-        {n:'OR clean intervals (outside)',d:'6–8×1km @ goal race pace, short rest — the run-quality option if legs are fresh and weather is good.'},
-        {n:'OR Stairmaster→lunges (low-impact)',d:'Back-sensitive week: 15–20 min stair ladder (single→double step) → 3×20m walking lunge @ 20kg. Same swap as Monday B — use vs a hard run when sparing the spine.'},
-      ]
-    },
-    { type:'Pre-coaching', label:'Optional pre-coaching (Vamos)', title:'Sled / WB block (15–25 min)',
-      exs:[
-        {n:'Option A',d:'4×25m sled push @ 152kg (open race weight) + 4×25m pull @ 103kg, 60s rest'},
-        {n:'Option B',d:'3×30 wall balls (6kg open / 9kg pro) + 3×20m lunge (20kg) unbroken'},
-        {n:'Option C',d:'2 rounds: sled push 152kg 25m + pull 103kg 25m → 10 WB → 20m lunge, 90s rest'},
-        {n:'Log',d:'Record max unbroken wall balls each week'},
+        {n:'A · Compromised (default if legs good)',d:{10:'5 rounds: 400m turf shuttles/erg (NOT treadmill) → station → repeat. Rotate: SkiErg 500m / row 500m / WB 30 / sled push / lunges 25m @ 20kg.',13:'3 rounds, race pace, stop while fresh'}},
+        {n:'B · Stairmaster→lunges (post-F45 legs heavy)',d:'15-20 min stair ladder (single→double) → 3×20m walking lunge @ 20kg. Low-impact quality, no spinal reload.'},
+        {n:'Why the double',d:'Polarized stacking: pile hard on an already-hard day so Tue/Thu stay quality. Mid-morning = quiet turf.'},
+        {n:'Run legs',d:'Shuttle pace = compromised race effort (HR 160s). Running ON station legs is the point, not the metres.'},
+        {n:'Pacing rehearsal',d:'Write target station splits on your hand. Negative-split the rounds.'},
       ]
     }
   ]},
   Thu:{ label:'Thursday', sessions:[
-    { type:'Compromised', label:'Primary AM — Key session', title:'Compromised run + station',
+    { type:'Gym', label:'WARRIORS 3 — Station volume', title:'Wall ball reassessment + erg quality',
       exs:[
-        {n:'🏐 Wall ball benchmark (do after warm-up)',d:'100 reps @ 6kg unbroken or best split — time it. Once per month fresh, every other week fatigued. Log both for gap analysis.'},
-        {n:'Structure',d:{1:'5 rounds, 90s rest',4:'5 rounds, 80s rest',7:'6 rounds, 75s rest',10:'7 rounds, 60s sec',13:'5 rounds race pace'}},
-        {n:'⚡ Bounding warm-up (PLYO)',d:{1:'3×30m before starting rounds — exaggerated running strides, drive knees',4:'3×30m',7:'4×30m',10:'4×30m',13:'3×30m'}},
-        {n:'Each round',d:'800m run @ 4:35–4:40/km → 1 station immediately'},
-        {n:'RULE',d:'Run 1 ≥4:35 always — cap treadmill at 4:35'},
-        {n:'Stations (std)',d:'Rotate: treadmill 400m / BBJ 30r / farmer carry 80m @ 24kg / thruster 20r'},
-        {n:'Gym only',d:'Compromised stays in the gym — the stations live here. Outdoor running is for the clean run days (Tue/Wed PM/Fri), not this session.'},
-        {n:'Stations (Shinjuku/Vamos)',d:'Rotate: sled push 2×25m @ 152kg (race weight) / SkiErg 500m / row 500m / WB 30r @ 6kg / lunge 20kg×25m / sled pull 25m @ 103kg (race weight)'},
-        {n:'Sled weight note',d:'Open: push 152kg total / pull 103kg total. Pro: push 202kg / pull 153kg. Thursday = race weight always. Monday = overload (heavier).'},
-        {n:'Finish',d:'ALWAYS end with 400m run — trains Run 8 durability'},
-        {n:'WB note',d:'Fresh time = ceiling. Fatigued time = race reality. Gap should narrow over 13 weeks.'},
-      ]
-    },
-    { type:'Recovery', label:'Secondary PM (optional)', title:'Recovery protocol',
-      exs:[
-        {n:'Massage',d:'60 min weekly slot'},
-        {n:'Mobility',d:'20 min: hip flexors, thoracic, shoulders'},
-        {n:'Cold plunge',d:'2–5 min if available'},
+        {n:'🏐 WB reassessment (wk1 Thu = 2-week checkpoint)',d:{10:'Fresh max unbroken (target: beat 45) · rest 3 min · race scheme 100: 20/15/15/10×5, micro-rests at wall 3-5s · EMOM 10×12. Log max + which chunk failed.',13:'Race scheme 60 reps @ race tempo only — groove, not build'}},
+        {n:'🚣 Row',d:{10:'4×500m @ 1:58-2:02, 60s rest. Neutral catch (L5-S1).',13:'2×500m @ race pace'}},
+        {n:'⛷ SkiErg',d:{10:'4×250m @ goal pace, 45s rest. Exhale on the pull.',13:'2×250m'}},
+        {n:'🪢 Sled pull touch',d:'2×12.5m @ race weight — frequency on the new station while you have it'},
       ]
     }
   ]},
   Fri:{ label:'Friday', sessions:[
-    { type:'Gym', label:'Primary AM', title:'Upper body — SkiErg/Row focus (legs rest post Thu)',
+    { type:'Run', label:'Primary — clean run (outdoor first)', title:'Intervals or hills',
       exs:[
-        {n:'Warm-up',d:'Arm circles 20f/20b, band pull-apart 2×15, scapular pull-ups 2×8, cat-cow 10r, thoracic rotation 10/side'},
-        {n:'A. Seated cable row',d:'4×12 @ 62kg — explosive pull, 2-sec return, wide overhand grip'},
-        {n:'A. Lat pulldown',d:'3×12 @ moderate — wide grip, initiate with lats not biceps'},
-        {n:'A. Single-arm DB row',d:'3×10/side @ 24–28kg — brace core, full range'},
-        {n:'A. Face pull',d:'3×15 @ light — rotator cuff health, don\'t skip'},
-        {n:'B. DB shoulder press',d:'3×12 @ 16–18kg/hand — only if L5-S1 neutral'},
-        {n:'B. DB incline press',d:'3×10 @ 22–24kg'},
-        {n:'B. Push-up to failure',d:'2×max — chest to floor, controlled'},
-        {n:'C. Dead hang',d:'3×max — grip endurance, no straps'},
-        {n:'C. Plank',d:'3×45 sec'},
-        {n:'C. Hollow hold',d:'3×30 sec — core bracing for sled posture'},
-        {n:'Note',d:'Skip overhead press if back talking after yesterday\'s sled session'},
-      ]
-    },
-    { type:'Run', label:'Secondary PM (optional)', title:'Hill sprints or track',
-      exs:[
-        {n:'Hill sprints',d:{1:'6×100m @ 85% effort, walk down 90s',4:'7×100m',7:'8×100m',10:'8×100m + 2×200m',13:'5×100m'}},
-        {n:'Or track',d:'4×200m at controlled fast pace'},
-        {n:'Condition',d:'Only if <32°C and legs not heavy'},
+        {n:'A · OUTDOOR intervals (default)',d:{10:'6×1km @ goal race pace (4:45-5:00/km), 90s jog rest. Track or Komazawa.',13:'4×400m @ race pace + strides — sharp, short'}},
+        {n:'A2 · OUTDOOR hills (alternate weeks / by feel)',d:'8×100m hill @ hard effort, walk-back recovery. The 13% incline near home.'},
+        {n:'B · RAIN SWAP → Warriors',d:'Stairmaster ladder 15-20 min (single→double step) → 3×20m walking lunge @ 20kg. Low-impact quality.'},
       ]
     }
   ]},
   Sat:{ label:'Saturday', sessions:[
-    { type:'F45', label:'Primary AM — Fixed 9:30', title:'F45 Hybrid (Sat = hybrid format)',
-      exs:[
-        {n:'Format',d:'Hybrid strength + cardio — higher HR and load than Wednesday'},
-        {n:'Odd weeks',d:'Full effort — quality hybrid session'},
-        {n:'Even weeks',d:'75% effort — preserve legs for PM race sim or intervals'},
-        {n:'Pre-F45 option',d:'15–20 min easy Z2 from 9:10 if energy good'},
-      ]
+    { type:'F45', label:'Primary AM (fixed 9:30)', title:'F45 hybrid',
+      exs:[{n:'Class',d:'Hybrid format — treat station blocks at race tempo where the class allows.'}]
     },
-    { type:'Run', label:'Secondary PM (recommended)', title:'Intervals or race sim',
+    { type:'Race Sim', label:'WARRIORS 4 — PM circuit (only if fresh post-F45)', title:'The sim replacement',
       exs:[
-        {n:'Odd weeks',d:{1:'6×1000m @ 4:05/km, 2:30 rest',4:'6×1000m @ 4:00/km',7:'6×1000m @ 3:58/km',10:'6×1000m @ 3:55/km',13:'4×1000m sharp'}},
-        {n:'Even weeks',d:'Run-station-run combos at race weight (full HYROX sim ONLY when Vamos kit is available — do not force a full sim without the equipment, it is not worth chasing).'},
-        {n:'Race sim rule',d:'Time every split — Run 8 must match Run 4'},
+        {n:'Circuit',d:{10:'4-5 rounds @ RACE PACE (shortened — F45 was this AM): 500m erg or 400m turf shuttle → station (rotate: sled push / WB 25 / row 500 / ski 500 / lunges / BBJ 8) → 60-90s rest. ~35 min. Skip entirely if F45 emptied you — Sunday rests either way.',13:'RACE WEEK: if this is Jul 4 — race day, Hangzhou. Week prior (Jun 27): F45 only, no circuit.'}},
+        {n:'Splits',d:'Time every station + every run leg. Round 6 must match round 2 — the Run 8 rule in miniature.'},
       ]
     }
   ]},
   Sun:{ label:'Sunday', sessions:[
-    { type:'Recovery', label:'AM — Fixed (Coaching)', title:'Coaching — no training'},
-    { type:'Recovery', label:'Secondary PM (optional)', title:'Yoga or easy jog',
+    { type:'Run', label:'Long Z2 OR full rest', title:'By feel',
       exs:[
-        {n:'Yoga (odd weeks)',d:'60–75 min — hip flexors, thoracic, breathwork'},
-        {n:'Jog (even weeks)',d:'30 min easy Z2, HR <65% after 3pm'},
-        {n:'HRV rule',d:'If recovery <50% → yoga only'},
+        {n:'A · Long Z2 (if recovered)',d:{10:'50-60 min easy, HR <75%, Komazawa. Skip without guilt if the week bit hard.',13:'30-40 min easy max — taper'}},
+        {n:'B · Full rest (default if in doubt)',d:'Walk, mobility, sauna. At 45 in a 5-visit week, rest IS training.'},
       ]
     },
-    { type:'Pre-coaching', label:'Optional — before Sunday coaching (F45 or Vamos sled)', title:'Sled / WB / Lunge — 15–25 min',
-      exs:[
-        {n:'When available',d:'F45 sled before coaching, or Vamos if en route'},
-        {n:'Option A — Sled only',d:'4×25m sled push @ 152kg (open race weight) + 4×25m pull @ 103kg, 60s rest'},
-        {n:'Option B — WB + Lunge',d:'3×30 wall balls (6kg open race weight) unbroken + 3×20m lunge (20kg) — log max unbroken WB'},
-        {n:'Option C — Combined',d:'2 rounds: sled push 152kg 25m + pull 103kg 25m → 10 WB → 20m lunge, 90s rest'},
-        {n:'Sunday rule',d:'Legs heavy from Saturday — Option B preferred. No sled if race sim day prior.'},
-        {n:'Log',d:'Record max unbroken wall balls each week — this is your WB benchmark'},
-      ]
-    }
-  ]}
+    { type:'Other', label:'Recovery', title:'Non-negotiables', exs:[{n:'Sleep',d:'8h target'},{n:'Mobility',d:'15 min hips/ankles/T-spine'},{n:'Fuel',d:'Protein 2g/kg, carbs up on circuit days'}] }
+  ]},
 };
 const DAY_ORDER = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const TYPE_COLORS = { Run:'#5B9CF6', Gym:'#4ADE80', F45:'#FFB547', Compromised:'#FF6B9D', 'Pre-coaching':'#BF5AF2', Recovery:'#666', 'Race Sim':'#C8F135' };
@@ -698,10 +619,11 @@ const TYPE_COLORS = { Run:'#5B9CF6', Gym:'#4ADE80', F45:'#FFB547', Compromised:'
 // ── STATE ─────────────────────────────────────────────────────────────────
 const S = { sessions:[], benchmarks:{}, hrv:{history:[]}, newRaces:[], races:[], profile:{} };
 function _dedupeS(arr){const seen=new Set();return (arr||[]).filter(s=>{const k=(s.date||'')+'|'+(s.type||'')+'|'+(s.dur||s.duration_min||'');if(seen.has(k))return false;seen.add(k);return true;});}
-function saveS(){ try{ localStorage.setItem('hachi_v3', JSON.stringify(S)); }catch{} }
+function _lsK(){ return 'hachi_v3_'+(typeof UID!=='undefined'&&UID?UID:'anon'); }
+function saveS(){ try{ localStorage.setItem(_lsK(), JSON.stringify(S)); }catch{} }
 function loadS(){
   try{
-    const d = localStorage.getItem('hachi_v3');
+    const d = localStorage.getItem(_lsK());
     if(d){ const p=JSON.parse(d); S.sessions=_dedupeS(p.sessions||[]); S.benchmarks=p.benchmarks||{}; S.races=p.races||[]; S.profile=p.profile||{}; S.hrv=p.hrv||{history:[]}; S.newRaces=p.newRaces||[]; }
   }catch{}
 }
@@ -1058,10 +980,9 @@ function saveSession(){
     stations: getStations(),
   };
   if(_editId){
-    sess.needsReview=false;
     const i=S.sessions.findIndex(x=>x.id===_editId);
-    if(i>=0)S.sessions[i]=sess; else S.sessions.push(sess);
-    if(_uuid(sess.id)){try{sb.from('sessions').update({needs_review:false}).eq('id',sess.id);}catch(e){}}
+    if(i>=0){sess.source=S.sessions[i].source||'manual';S.sessions[i]=sess;}else{S.sessions.push(sess);}
+    sess.needsReview=false;
     _editId=null;
   } else {
     S.sessions.push(sess);
@@ -1487,14 +1408,15 @@ let UID=null,SB_EMAIL='',_syncT=null,GROUP=null;
 const _m2s=v=>{if(v==null||v==='')return null;const p=String(v).split(':');return p.length===2?(+p[0])*60+(+p[1]):Math.round(parseFloat(v));};
 const _s2m=x=>{if(x==null)return '';const m=Math.floor(x/60),k=x%60;return m+':'+String(k).padStart(2,'0');};
 const _uuid=x=>/^[0-9a-f]{8}-/.test(String(x||''));
-function _toRow(o){return{...(_uuid(o.id)?{id:o.id}:{}),user_id:UID,date:o.date||null,type:o.type||null,run_type:o.runType||null,distance_km:o.dist?parseFloat(o.dist):null,pace_sec:_m2s(o.pace),hr:o.hr?parseInt(o.hr):null,rpe:o.rpe?parseInt(o.rpe):null,duration_min:o.dur?parseInt(o.dur):null,lifts_text:o.lifts||null,stations:o.stations||{},notes:o.notes||null};}
+function _toRow(o){return{...(_uuid(o.id)?{id:o.id}:{}),user_id:UID,date:o.date||null,type:o.type||null,run_type:o.runType||null,distance_km:o.dist?parseFloat(o.dist):null,pace_sec:_m2s(o.pace),hr:o.hr?parseInt(o.hr):null,rpe:o.rpe?parseInt(o.rpe):null,duration_min:o.dur?parseInt(o.dur):null,lifts_text:o.lifts||null,stations:o.stations||{},notes:o.notes||null,needs_review:!!o.needsReview,source:o.source||'manual'};}
 function _toSess(r){return{id:r.id,date:r.date,type:r.type,runType:r.run_type,dist:r.distance_km!=null?String(r.distance_km):'',pace:_s2m(r.pace_sec),hr:r.hr!=null?String(r.hr):'',rpe:r.rpe!=null?String(r.rpe):'',dur:r.duration_min!=null?String(r.duration_min):'',lifts:r.lifts_text||'',notes:r.notes||'',stations:r.stations||{},needsReview:!!r.needs_review,source:r.source||''};}
 async function loadFromSupabase(){
   if(!UID)return;
+  try{
   const [se,be,hv,ra,pr]=await Promise.all([
     sb.from('sessions').select('*').eq('user_id',UID).order('date'),
-    sb.from('benchmarks').select('*'),
-    sb.from('hrv').select('*').order('date'),
+    sb.from('benchmarks').select('*').eq('user_id',UID),
+    sb.from('hrv').select('*').eq('user_id',UID).order('date'),
     sb.from('races').select('*').eq('user_id',UID),
     sb.from('profiles').select('*').eq('user_id',UID).maybeSingle()]);
   if(!se.error)S.sessions=_dedupeS((se.data||[]).map(_toSess));
@@ -1503,7 +1425,8 @@ async function loadFromSupabase(){
   if(!ra.error)S.races=ra.data||[];
   if(pr.data)S.profile=pr.data;
   else{const ins={user_id:UID,display_name:(SB_EMAIL||'').split('@')[0]};try{await sb.from('profiles').insert(ins);}catch(e){}S.profile=ins;}
-  try{localStorage.setItem('hachi_v3',JSON.stringify(S));}catch{}
+  try{localStorage.setItem(_lsK(),JSON.stringify(S));}catch{}
+  }catch(e){ console.error('loadFromSupabase failed',e); _showLogin('Network error loading data \u2014 check connection and sign in again'); }
 }
 async function pushAll(){
   if(!UID)return;
@@ -1513,12 +1436,12 @@ async function pushAll(){
   const ext=ss.filter(o=>_uuid(o.id));
   if(ext.length)await sb.from('sessions').upsert(ext.map(_toRow));
   const bm=Object.entries(S.benchmarks||{}).map(([station,best_sec])=>({user_id:UID,station,best_sec}));
-  if(bm.length)await sb.from('benchmarks').upsert(bm);
+  if(bm.length)await sb.from('benchmarks').upsert(bm,{onConflict:'user_id,station'});
   const hv=((S.hrv&&S.hrv.history)||[]).map(h=>({user_id:UID,date:h.date,value:h.val}));
-  if(hv.length)await sb.from('hrv').upsert(hv);
-  try{localStorage.setItem('hachi_v3',JSON.stringify(S));}catch{}
+  if(hv.length)await sb.from('hrv').upsert(hv,{onConflict:'user_id,date'});
+  try{localStorage.setItem(_lsK(),JSON.stringify(S));}catch{}
 }
-saveS=function(){try{localStorage.setItem('hachi_v3',JSON.stringify(S));}catch{}clearTimeout(_syncT);_syncT=setTimeout(pushAll,800);};
+saveS=function(){try{localStorage.setItem(_lsK(),JSON.stringify(S));}catch{}clearTimeout(_syncT);_syncT=setTimeout(pushAll,800);};
 function _hideLogin(){const o=document.getElementById('sb-login');if(o)o.remove();}
 function _showLogin(msg){
   if(document.getElementById('sb-login'))return;
@@ -1527,6 +1450,7 @@ function _showLogin(msg){
   d.innerHTML='<style>@keyframes sbspin{to{transform:rotate(360deg)}}.sb-spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;border-radius:50%;animation:sbspin .6s linear infinite;vertical-align:-2px;margin-right:8px}#sb-go{transition:transform .08s,opacity .15s}#sb-go:active{transform:scale(.97)}#sb-go:disabled{opacity:.7;cursor:default}</style><div style="font-size:32px;letter-spacing:4px">\u516B HACHI</div><div class="sb-msg" style="opacity:.6;font-size:13px;min-height:18px;text-align:center">'+(msg||'Sign in to sync')+'</div><input id="sb-email" type="email" placeholder="email" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:1px solid #333;background:#141414;color:#fff;font-size:16px"><input id="sb-pass" type="password" placeholder="password" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:1px solid #333;background:#141414;color:#fff;font-size:16px"><button id="sb-go" style="width:min(320px,80vw);padding:12px;border-radius:10px;border:0;background:#fff;color:#000;font-weight:600;font-size:15px">Sign in</button>';
   document.body.appendChild(d);
   const _btn=document.getElementById('sb-go'),_st=d.querySelector('.sb-msg');
+  ['sb-email','sb-pass'].forEach(i=>{const el=document.getElementById(i);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')_btn.click();});});
   _btn.onclick=async()=>{
     if(_btn.disabled)return;
     const email=document.getElementById('sb-email').value.trim();
@@ -1541,7 +1465,7 @@ async function _onSession(sess){
   if(sess){UID=sess.user.id;SB_EMAIL=sess.user.email||'';_hideLogin();await loadFromSupabase();init();}
   else{_showLogin();}
 }
-function sbLogout(){ try{localStorage.removeItem('hachi_v3');}catch{} sb.auth.signOut().then(()=>location.reload()); }
+function sbLogout(){ try{localStorage.removeItem(_lsK());}catch{} sb.auth.signOut().then(()=>location.reload()); }
 async function bootstrap(){
   sb.auth.onAuthStateChange((_e,s)=>{_onSession(s);});
   const {data:{session}}=await sb.auth.getSession();
