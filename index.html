@@ -780,7 +780,7 @@ const PROG_WARRIORS = {
         {n:'B · Full rest (default if in doubt)',d:'Walk, mobility, sauna. At 45 in a 5-visit week, rest IS training.'},
       ]
     },
-    { type:'Other', label:'Recovery', title:'Non-negotiables', exs:[{n:'Sleep',d:'8h target'},{n:'Mobility',d:'15 min hips/ankles/T-spine'},{n:'Fuel',d:'Protein 2g/kg, carbs up on circuit days'}] }
+    { type:'Recovery', label:'Recovery', title:'Non-negotiables', exs:[{n:'Sleep',d:'8h target'},{n:'Mobility',d:'15 min hips/ankles/T-spine'},{n:'Fuel',d:'Protein 2g/kg, carbs up on circuit days'}] }
   ]},
 };
 const PROG_TAPER = {
@@ -1656,12 +1656,14 @@ function backfillManual(){
       notes:'Komazawa clean run. Legs sore post Mon leg-heavy day. 5:25 @152bpm vs 5:01 @152 fresh = ~24s/km fatigue tax, normal DOMS response. 513cal. Aerobic banked, not a quality day.' },
     { date:'2026-06-11', type:'Compromised', runType:'', dist:'5.2', pace:'5:46', hr:'159', rpe:'8', dur:'56', lifts:'', stations:{},
       notes:'Continuous compromised sim, Shinjuku, no rest (5-10s transitions in station laps). Runs: 4:41 / 4:28.9 / 4:29.2 / 4:29.4 / 4:36.2 / 4:38.7 + 400m post-WB 2:37 (6:34/km). R2-R4 spread 0.5s = elite-flat; fade R2->R6 only 3.6%. Sleds 153.75kg p/p x3 4:43. BBJ 40m 2:27. Row 800m 3:47. Lunges 20kg/40m 2:57. FC 30kg/60m 1:33. WB 100 in 7:02 as 30-20-10x5, zero failures, HR169 going in. 771cal. Felt strong, tired late, post-WB run tough - expected.' },
-    { date:'2026-06-08', type:'Other', runType:'', dist:'', pace:'', hr:'', rpe:'1', dur:'60', lifts:'', stations:{},
+    { date:'2026-06-08', type:'Recovery', runType:'', dist:'', pace:'', hr:'', rpe:'1', dur:'60', lifts:'', stations:{},
       notes:'Recovery - full body massage 60min, DATSUMOW CENTER Jiyugaoka, 12pm. Post Mon AM sled/WB session.' },
-    { date:'2026-06-10', type:'Other', runType:'', dist:'', pace:'', hr:'', rpe:'1', dur:'35', lifts:'', stations:{},
+    { date:'2026-06-10', type:'Recovery', runType:'', dist:'', pace:'', hr:'', rpe:'1', dur:'35', lifts:'', stations:{},
       notes:'Recovery - contrast: sauna 10min / plunge 23C 3-4min / sauna 10min / plunge 3-4min / sauna 7-8min / plunge 1min. Midoriyu, Midorigaoka, 1pm.' },
-    { date:'2026-06-11', type:'Other', runType:'', dist:'', pace:'', hr:'', rpe:'1', dur:'20', lifts:'', stations:{},
+    { date:'2026-06-11', type:'Recovery', runType:'', dist:'', pace:'', hr:'', rpe:'1', dur:'20', lifts:'', stations:{},
       notes:'Recovery - sauna 8min / hot onsen 3-4min / sauna 5min / onsen 1min, Renaissance Shinjuku post-compromised session. Hot-to-hot too much, cut short.' },
+    { date:'2026-06-12', type:'Run', runType:'Threshold', dist:'10.27', pace:'4:36', hr:'144', rpe:'7', dur:'47', lifts:'', stations:{},
+      notes:'Threshold intervals 8×800m. Walk 200m recovery reps 1–5, 300m reps 6–7. Avg threshold pace 4:07/km (range 3:57–4:16). HR 144bpm. Outdoor Komazawa.' },
   ];
   const key = s => [s.date, s.type, s.dur, s.dist||''].join('|');
   const have = new Set(S.sessions.map(key));
