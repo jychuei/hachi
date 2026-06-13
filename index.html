@@ -811,7 +811,6 @@ const PROG_POSTRACE = {
   Sat:{ label:'Saturday', sessions:[{ type:'F45', label:'Optional', title:'F45 easy', exs:[{n:'If F45',d:'Light. Recovery is still the block.'}]}]},
   Sun:{ label:'Sunday', sessions:[{ type:'Other', label:'Rest', title:'Full rest', exs:[{n:'Rest',d:'Plan the next block this week.'}]}]},
 };
-const YOSUKE_UID_PREFIX = '7f4e9d72';
 const PROG_YOSUKE = {
   Mon:{ label:'Monday', sessions:[
     { type:'Gym', label:'Primary — Strength + station carry-over', title:'Foundation strength (Anytime)',
@@ -906,8 +905,154 @@ const PROG_YOSUKE = {
     }
   ]}
 };
+const YOSUKE_UID_PREFIX='7f4e9d72', TIM_UID_PREFIX='b64c8f77', GERRY_UID_PREFIX='cf2ce514';
+const PROG_TIM = {
+  Mon:{ label:'Monday', sessions:[
+    { type:'Gym', label:'Primary — Anytime Fitness', title:'Pull + grip strength (sled-pull driver) — legs light',
+      exs:[
+        {n:'Read this first', d:"Jakarta ~2 weeks out — this is sharpen + taper, NOT building. Your data: sled pull, wall balls, row are the gaps; legs, carry and sled push are already strong. Train the gaps, rest the strengths."},
+        {n:'Warm-up', d:'8 min row/bike · band pull-apart 2×15 · scapular pull-ups 2×8'},
+        {n:'Heavy seated cable row', d:'4×8 — this is your sled-pull pattern. Hard pull, controlled return.'},
+        {n:'Lat pulldown / pull-up', d:'4×8 wide grip — initiate with lats.'},
+        {n:'Single-arm DB row', d:'3×10/side heavy — unilateral pull.'},
+        {n:'Sled-pull sim (no rope at Anytime)', d:'Hand-over-hand on a cable stack, or heavy reverse cable drag, 4×30s. The pull pattern is a skill — rehearse it even without the sled.'},
+        {n:'Dead hang + farmer hold', d:'3×max each — grip is the real sled-pull limiter for you.'},
+        {n:'Legs', d:'Keep light: goblet squat 2×10 easy. Already strong + tapering — do not load heavy this close to race.'},
+      ]
+    },
+  ]},
+  Tue:{ label:'Tuesday', sessions:[
+    { type:'Run', label:'Primary — outdoor', title:'Race-pace sharpener (taper volume)',
+      exs:[
+        {n:'Main', d:'3–4×600m @ goal race pace, full recovery between. Short and sharp — legs primed, not fatigued.'},
+        {n:'Why short', d:'2 weeks out you sharpen, not build. F45 covers the volume.'},
+        {n:'Venue', d:'Outdoor flat or track.'},
+      ]
+    },
+  ]},
+  Wed:{ label:'Wednesday', sessions:[
+    { type:'F45', label:'Primary — F45', title:'F45 cardio — easy',
+      exs:[
+        {n:'Role', d:'Aerobic only. Ride it controlled. You race in ~2 weeks — no station heroics.'},
+      ]
+    },
+  ]},
+  Thu:{ label:'Thursday', sessions:[
+    { type:'Gym', label:'Primary — Anytime Fitness', title:'Wall ball capacity + row (your two big gaps)',
+      exs:[
+        {n:'Wall balls (PRIORITY)', d:'Your 5:00 is well off target. Rehearse the race scheme: 100 as 25/25/20/15/15, micro-rests at the wall, exhale every throw. No wall? DB thrusters, same scheme.'},
+        {n:'Row (PRIORITY)', d:'4×500m @ race pace, 60s rest. Neutral catch, drive legs→hips→arms. Build the pulling engine.'},
+        {n:'BBJ', d:'4×10 race standard — chest to floor, two-foot jump, smooth rhythm.'},
+        {n:'Keep it crisp', d:'Quality reps, not a grinder. Tapering — touch the gaps, do not bury yourself.'},
+      ]
+    },
+  ]},
+  Fri:{ label:'Friday', sessions:[
+    { type:'Run', label:'Primary — outdoor', title:'Easy + strides',
+      exs:[
+        {n:'Run', d:'20–25 min easy Z2 + 4×20s strides. Flush, not a workout.'},
+      ]
+    },
+  ]},
+  Sat:{ label:'Saturday', sessions:[
+    { type:'F45', label:'Primary — F45', title:'F45 hybrid — ~75%',
+      exs:[
+        {n:'Manage', d:'Coast the heavy blocks. Sunday class is your real session; race is close. Bank movement, not fatigue.'},
+      ]
+    },
+  ]},
+  Sun:{ label:'Sunday', sessions:[
+    { type:'Compromised', label:'Primary — HYROX class', title:'Race rehearsal + your only sled-pull reps',
+      exs:[
+        {n:'Sled pull (PRIORITY)', d:'This class is your only rope session — attack it: hips low, hand-over-hand, walk back hard, reset fast. This is your single biggest time gap (+92s).'},
+        {n:'Wall balls', d:'Chunk from rep 1 (25/25/20/15/15), exhale every throw, 3–5s at the wall.'},
+        {n:'Pacing — realism', d:'Target 1:09 is ~8 min under your best open. Do not chase it off a taper — run YOUR pace, negative-split, let the sharpening show on race day. Disciplined beats heroic.'},
+        {n:'Rehearse', d:'Write splits on your hand. Treat it as the Jakarta dress rehearsal.'},
+      ]
+    },
+  ]},
+};
+const PROG_GERRY = {
+  Mon:{ label:'Monday', sessions:[
+    { type:'Gym', label:'Primary — Warriors', title:'Strength + SLED PULL priority',
+      exs:[
+        {n:'Read this first', d:"Chiba ~8 weeks out — build phase. Your data: sled pull (+84s), wall balls (+119s), row are the big gaps; sled push and ski are already strong. Bias volume to the gaps, maintain the strengths."},
+        {n:'Warm-up', d:'10 min row/bike · hip openers · 2×10 squat-to-throw'},
+        {n:'Sled pull (PRIORITY)', d:'6×12.5m @ race weight, hand-over-hand, hips low, walk back hard. Highest-frequency station for you — this is the biggest single time gap.'},
+        {n:'Back squat', d:'4×6 maintain — legs are fine, do not over-invest.'},
+        {n:'RDL', d:'4×8 hinge, neutral spine — posterior chain feeds the sled pull.'},
+        {n:'Heavy seated row', d:'4×10 — pulling strength carry-over to sled pull + row station.'},
+        {n:'Farmer carry', d:'3×50m — maintain (already strong).'},
+      ]
+    },
+  ]},
+  Tue:{ label:'Tuesday', sessions:[
+    { type:'Run', label:'Primary — outdoor', title:'Threshold (maintain running)',
+      exs:[
+        {n:'Main', d:'25–30 min continuous @ threshold, or 3×10 min w/ 2 min float.'},
+        {n:'Engine swap', d:'Legs sore from Mon? Bike/row 4×8 min @ threshold HR. Same stimulus, no pounding.'},
+      ]
+    },
+  ]},
+  Wed:{ label:'Wednesday', sessions:[
+    { type:'Gym', label:'Primary — Warriors', title:'Wall ball + row capacity (your worst stations)',
+      exs:[
+        {n:'Wall balls (PRIORITY)', d:'Your 5:49 is the single biggest opportunity in your profile. 100 as 25/25/20/15/15 → then EMOM capacity work. Hip hinge at the bottom, exhale every throw. Log max unbroken.'},
+        {n:'Row (PRIORITY)', d:'5×500m @ goal pace, 60s rest. Neutral catch, legs→hips→arms.'},
+        {n:'SkiErg', d:'4×500m maintain (already a strength).'},
+        {n:'Sled pull touch', d:'3×12.5m @ race weight — frequency on the rope while you have the kit.'},
+      ]
+    },
+  ]},
+  Thu:{ label:'Thursday', sessions:[
+    { type:'Run', label:'Primary — outdoor', title:'Long Z2',
+      exs:[
+        {n:'Main', d:'50–70 min easy, HR <75%, conversational.'},
+        {n:'Engine swap', d:'Feet/knees talking? Bike 60–75 min or 40 min bike + 20 min ski/row.'},
+      ]
+    },
+  ]},
+  Fri:{ label:'Friday', sessions:[
+    { type:'Compromised', label:'Primary — Warriors KEY session', title:'Compromised run + station (gap-biased)',
+      exs:[
+        {n:'Structure', d:'5 rounds: 400–800m run → 1 station. Bias the rotation so sled pull, wall balls and row each get hit twice across the session.'},
+        {n:'The point', d:'Running on station legs at race effort, not a time trial. Your weak stations under fatigue is exactly the race scenario.'},
+        {n:'Finish rule', d:'Always end on a run leg — late-race durability.'},
+        {n:'Log', d:'Time every station + run. Primary benchmark feed.'},
+      ]
+    },
+  ]},
+  Sat:{ label:'Saturday', sessions:[
+    { type:'Race Sim', label:'Primary — Warriors (if fresh)', title:'Race-pace circuit / partial sim',
+      exs:[
+        {n:'Circuit', d:'4–5 rounds @ race pace: 500m erg or 400m run → station → short rest. ~35 min.'},
+        {n:'Splits', d:'Time everything. Last round matches round 2 — the Run-8 rule in miniature.'},
+        {n:'Or intervals', d:'Legs flat? Swap to 6×1km outdoor @ race pace.'},
+      ]
+    },
+  ]},
+  Sun:{ label:'Sunday', sessions:[
+    { type:'Recovery', label:'Recovery / long easy', title:'By feel',
+      exs:[
+        {n:'Option A', d:'Long Z2 50–60 min if recovered, HR <75%.'},
+        {n:'Option B', d:'Full rest — walk, mobility. Rest is training.'},
+        {n:'Non-negotiables', d:'Sleep 8h, protein, hydrate.'},
+      ]
+    },
+  ]},
+};
+const ATHLETE_PROGS = {
+  [YOSUKE_UID_PREFIX]:{ get:()=>PROG_YOSUKE, mode:'countdown', start:'2026-06-19', weeks:7, focus:['Legs — sled push/pull, lunges, Run-8 durability (first-race leg tax)'] },
+  [TIM_UID_PREFIX]:{ get:()=>PROG_TIM, mode:'rolling', focus:['Sled pull, wall balls, row — pulling endurance + capacity (legs/carry already strong)'] },
+  [GERRY_UID_PREFIX]:{ get:()=>PROG_GERRY, mode:'rolling', focus:['Sled pull, wall balls, row — capacity gaps (sled push already strong)'] },
+};
+function _athlete(){
+  if(typeof UID==='undefined'||!UID) return null;
+  const k=Object.keys(ATHLETE_PROGS).find(p=>UID.startsWith(p));
+  return k?ATHLETE_PROGS[k]:null;
+}
 function activeProg(){
-  if(typeof UID!=='undefined'&&UID&&UID.startsWith(YOSUKE_UID_PREFIX)) return PROG_YOSUKE;
+  const a=_athlete(); if(a) return a.get();
   const t=new Date(); const d=t.toISOString().slice(0,10);
   if(d<='2026-06-14') return PROG_STD;            // current plan through this Sunday
   if(d<='2026-06-28') return PROG_WARRIORS;       // Warriors block, 2 weeks from Mon Jun 15
@@ -934,7 +1079,7 @@ function loadS(){
 const s2m = s => { const m=Math.floor(s/60),ss=s%60; return m+':'+(ss<10?'0':'')+ss; };
 const m2s = str => { if(!str||!str.includes(':'))return 0; const[m,s]=str.split(':'); return parseInt(m||0)*60+parseInt(s||0); };
 const days2race = () => { const d=(S.profile&&S.profile.target_race_date); if(!d) return null; return Math.max(0, Math.ceil((new Date(d)-new Date())/86400000)); };
-const curWeek = () => { if(typeof UID!=='undefined'&&UID&&UID.startsWith(YOSUKE_UID_PREFIX)){return Math.max(1,Math.min(7,Math.ceil((new Date()-new Date('2026-06-19'))/604800000)+1));} const d=days2race(); if(d!=null) return PHASE_WK[racePhase()]; const ps=(S.profile&&S.profile.programme_start)?new Date(S.profile.programme_start):new Date('2026-05-18'); return Math.max(1, Math.min(13, Math.ceil((new Date()-ps)/604800000)+1)); };
+const curWeek = () => { const a=_athlete(); if(a){ if(a.mode==='countdown') return Math.max(1,Math.min(a.weeks,Math.ceil((new Date()-new Date(a.start))/604800000)+1)); return 1; } const d=days2race(); if(d!=null) return PHASE_WK[racePhase()]; const ps=(S.profile&&S.profile.programme_start)?new Date(S.profile.programme_start):new Date('2026-05-18'); return Math.max(1, Math.min(13, Math.ceil((new Date()-ps)/604800000)+1)); };
 const phaseOf = w => w<=3?'Base':w===4?'Deload':w<=7?'Threshold':w===8?'Deload':w<=11?'Race Specific':w===12?'Deload':'Taper';
 const phaseColor = p => ({Base:'#5B9CF6',Deload:'#FFB547',Threshold:'#C8F135','Race Specific':'#FF6B9D',Peak:'#BF5AF2',Taper:'#FF9500'}[p]||'#666');
 
@@ -1176,6 +1321,7 @@ function _userRunRef(){
 const PLAN_BASE_PACE=284;
 function _paceScale(){const u=_userRunRef();return u?Math.max(0.85,Math.min(1.15,u/PLAN_BASE_PACE)):1;}
 function personalisePlan(det){
+  if(_athlete()) return det;
   if(!det||typeof det!=='string') return det;
   let t=det.replace(/Renaissance Shinjuku|Shinjuku/g,'erg gym').replace(/Vamos/g,'full-kit gym').replace(/\bF45\b/g,'class');
   const sc=_paceScale();
@@ -1235,7 +1381,9 @@ function renderProg(){
   const container = document.getElementById('prog-days');
   const _pri=stationPriorities();
   const _highs=Object.keys(_pri).filter(k=>_pri[k]==='High').map(k=>(_STATIONS.find(s=>s[0]===k)||[k,k])[1]);
-  container.innerHTML = _highs.length?`<div class="card" style="margin-bottom:10px;border-left:3px solid var(--accent)"><div style="font-size:11px;color:var(--muted)">YOUR FOCUS · extra attention on weak stations</div><div style="font-size:13px;color:var(--accent);font-weight:500">${_highs.join(' · ')}</div></div>`:'';
+  const _a=_athlete();
+  const _focus=_highs.length?_highs:((_a&&_a.focus)?_a.focus:[]);
+  container.innerHTML = _focus.length?`<div class="card" style="margin-bottom:10px;border-left:3px solid var(--accent)"><div style="font-size:11px;color:var(--muted)">YOUR FOCUS · extra attention this block</div><div style="font-size:13px;color:var(--accent);font-weight:500">${_focus.join(' · ')}</div></div>`:'';
   const now = new Date().getDay();
   const dayMap = {Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:0};
   const gen = genWeek();
