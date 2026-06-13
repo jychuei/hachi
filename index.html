@@ -811,7 +811,103 @@ const PROG_POSTRACE = {
   Sat:{ label:'Saturday', sessions:[{ type:'F45', label:'Optional', title:'F45 easy', exs:[{n:'If F45',d:'Light. Recovery is still the block.'}]}]},
   Sun:{ label:'Sunday', sessions:[{ type:'Other', label:'Rest', title:'Full rest', exs:[{n:'Rest',d:'Plan the next block this week.'}]}]},
 };
+const YOSUKE_UID_PREFIX = '7f4e9d72';
+const PROG_YOSUKE = {
+  Mon:{ label:'Monday', sessions:[
+    { type:'Gym', label:'Primary — Strength + station carry-over', title:'Foundation strength (Anytime)',
+      exs:[
+        {n:'Warm-up', d:'10 min bike easy · hip circles 2×10 · cat-cow 10r · dead bug 2×8 · goblet squat 10r @ BW'},
+        {n:'⚠️ Back', d:'No barbell DL from floor. Smith machine / goblet / RDL only. Sharp or referring pain = stop immediately. Muscle burn is fine, sciatic shooting is not.'},
+        {n:'Goblet squat', d:{1:'3×15 @ 16kg',3:'3×15 @ 20kg',5:'4×12 @ 24kg',7:'3×10 @ 20kg'}},
+        {n:'RDL (DB or trap bar)', d:{1:'3×12 @ 40kg',3:'3×12 @ 50kg',5:'4×10 @ 60kg',7:'3×10 @ 50kg'}},
+        {n:'Split squat (rear foot elevated)', d:{1:'3×10/leg @ BW',3:'3×10/leg @ 8kg/hand',5:'3×10/leg @ 12kg/hand',7:'2×10/leg @ 10kg/hand'}},
+        {n:'Farmer carry (DBs)', d:{1:'3×30m @ 20kg/hand',3:'3×40m @ 24kg/hand',5:'3×50m @ 28kg/hand',7:'2×30m @ 24kg/hand'}},
+        {n:'Seated cable row', d:{1:'3×15 @ 42kg',3:'4×12 @ 49kg',5:'4×12 @ 56kg',7:'3×12 @ 49kg'}},
+        {n:'Dead hang', d:{1:'3×20s',3:'3×30s',5:'3×40s',7:'2×30s'}},
+        {n:'Plank', d:{1:'3×30s',3:'3×40s',5:'3×45s',7:'2×30s'}},
+        {n:'Back note wk 1', d:'Start every movement light. Form > load for the first two weeks. Football base is there — HYROX loading patterns are new, earn them.'},
+      ]
+    },
+    { type:'Run', label:'Optional PM', title:'Easy flush jog',
+      exs:[{n:'Easy jog', d:'20 min, HR <65%, nasal breathing. Skip if legs are heavy.'}]
+    }
+  ]},
+  Tue:{ label:'Tuesday', sessions:[
+    { type:'Run', label:'Primary AM — Long Z2', title:'Aerobic base run',
+      exs:[
+        {n:'Main run', d:{1:'30 min @ 6:15–6:30/km',3:'40 min @ 6:00–6:15/km',5:'55 min @ 5:55–6:10/km',7:'25 min easy taper'}},
+        {n:'Effort', d:'Conversational pace — able to speak in full sentences. Base-building, not a workout.'},
+        {n:'Venue', d:'Outdoor flat. No treadmill. Komazawa or equivalent.'},
+        {n:'Football context', d:'You will want to push. Do not. Z2 feels embarrassingly slow. That is the point. Weeks 1–2 are about time on feet, not pace.'},
+        {n:'HR target', d:'<75% max (roughly <148bpm for mid-30s). If breathing is laboured, slow down.'},
+      ]
+    }
+  ]},
+  Wed:{ label:'Wednesday', sessions:[
+    { type:'F45', label:'Fixed AM', title:'F45 cardio',
+      exs:[{n:'Class', d:'Cardio format. Aerobic where possible. Wks 1–2: 75% effort. Wks 3+: race tempo on station blocks.'}]
+    }
+  ]},
+  Thu:{ label:'Thursday', sessions:[
+    { type:'Compromised', label:'Primary — KEY session', title:'Compromised run + station (Vamos)',
+      exs:[
+        {n:'Structure', d:{1:'3 rounds, 2 min rest',3:'4 rounds, 90s rest',5:'5 rounds, 75s rest',7:'3 rounds @ race effort, full rest'}},
+        {n:'Each round', d:{1:'400m run @ 6:30/km → 1 station',3:'600m run @ 6:15/km → 1 station',5:'800m run @ 6:00/km → 1 station',7:'400m run @ 5:55/km → 1 station'}},
+        {n:'Station rotation (Vamos)', d:'Sled push 152kg / Sled pull 103kg / SkiErg 500m / Row 500m / Wall balls 30r @ 6kg / BBJ 20r / Farmer carry 200m @ 20kg/hand / Lunges 20kg×25m'},
+        {n:'Wk 1–2 station rule', d:'First session on each station: 50% effort, full attention on form. Do not race.'},
+        {n:'⚠️ Sled push', d:'Hands wide on bar, drive through heels, UPRIGHT torso. Do not collapse forward — back injury cue.'},
+        {n:'⚠️ Row catch', d:'Neutral spine at catch. Legs first, hips second, arms third. No lumbar rounding.'},
+        {n:'⚠️ Wall balls', d:'Hip hinge at bottom, not spinal flexion. Exhale every throw.'},
+        {n:'⚠️ BBJ', d:'Full chest to floor, two-foot jump. Football athleticism — use it. Smooth rhythm > speed.'},
+        {n:'Finish rule', d:'End EVERY session with 400m run. Walk last 100m if needed. Run the first 300m.'},
+        {n:'Splits', d:'Wk 3+: write target run pace on wrist. Time every station + run. Negative-split the rounds.'},
+      ]
+    }
+  ]},
+  Fri:{ label:'Friday', sessions:[
+    { type:'Gym', label:'Primary AM — Upper body', title:'Pull strength (SkiErg/Row carry-over)',
+      exs:[
+        {n:'Warm-up', d:'Arm circles 20f/20b · band pull-apart 2×15 · scapular pull-ups 2×8 · dead bug 2×8'},
+        {n:'Seated cable row', d:{1:'3×15 @ 42kg',3:'4×12 @ 49kg',5:'4×12 @ 56kg',7:'3×12 @ 49kg'}},
+        {n:'Lat pulldown', d:{1:'3×12 @ 35kg',3:'4×12 @ 42kg',5:'4×10 @ 49kg',7:'3×10 @ 42kg'}},
+        {n:'Single-arm DB row', d:'3×10/side @ 20→24kg progression'},
+        {n:'Face pull', d:'3×15 @ light — shoulder health, non-negotiable'},
+        {n:'DB shoulder press', d:{1:'3×12 @ 14kg/hand',3:'3×12 @ 16kg/hand',5:'3×10 @ 18kg/hand',7:'2×10 @ 14kg/hand'}},
+        {n:'Push-up to failure', d:'2×max, chest to floor'},
+        {n:'Dead hang', d:'3×max — grip endurance for farmer carry and sled pull'},
+        {n:'Hollow hold', d:'3×30s — core brace for sled posture'},
+      ]
+    },
+    { type:'Run', label:'Secondary PM — Intervals', title:'Threshold intervals',
+      exs:[
+        {n:'Warm-up', d:'10 min easy jog + 4×20s strides'},
+        {n:'Main set', d:{1:'4×400m @ 5:20/km, 90s walk rest',3:'5×600m @ 5:15/km, 90s rest',5:'4×800m @ 5:10/km, 90s rest',7:'3×400m sharp, full rest'}},
+        {n:'Effort', d:'Hard but controlled. Consistent across reps — do not blow up rep 1.'},
+        {n:'Venue', d:'Outdoor track or flat. Not treadmill.'},
+        {n:'Rest interval', d:'Walk it fully. Quality over volume — full recovery between reps.'},
+      ]
+    }
+  ]},
+  Sat:{ label:'Saturday', sessions:[
+    { type:'F45', label:'Fixed AM', title:'F45 hybrid',
+      exs:[
+        {n:'Class', d:'Hybrid format. Higher load than Wed. Treat station blocks at race tempo from wk 3.'},
+        {n:'Wks 1–2', d:'75% effort — let legs recover for next week.'},
+      ]
+    }
+  ]},
+  Sun:{ label:'Sunday', sessions:[
+    { type:'Recovery', label:'Rest', title:'Full recovery',
+      exs:[
+        {n:'Default', d:'Full rest. Walk, eat, sleep. Adaptation happens during recovery, not training.'},
+        {n:'Optional', d:'25 min very easy walk or jog (HR <65%) if genuinely fresh. Skip without guilt.'},
+        {n:'Priority', d:'Sleep 8h. Protein 2g/kg. Hydrate.'},
+      ]
+    }
+  ]}
+};
 function activeProg(){
+  if(typeof UID!=='undefined'&&UID&&UID.startsWith(YOSUKE_UID_PREFIX)) return PROG_YOSUKE;
   const t=new Date(); const d=t.toISOString().slice(0,10);
   if(d<='2026-06-14') return PROG_STD;            // current plan through this Sunday
   if(d<='2026-06-28') return PROG_WARRIORS;       // Warriors block, 2 weeks from Mon Jun 15
@@ -838,7 +934,7 @@ function loadS(){
 const s2m = s => { const m=Math.floor(s/60),ss=s%60; return m+':'+(ss<10?'0':'')+ss; };
 const m2s = str => { if(!str||!str.includes(':'))return 0; const[m,s]=str.split(':'); return parseInt(m||0)*60+parseInt(s||0); };
 const days2race = () => { const d=(S.profile&&S.profile.target_race_date); if(!d) return null; return Math.max(0, Math.ceil((new Date(d)-new Date())/86400000)); };
-const curWeek = () => { const d=days2race(); if(d!=null) return PHASE_WK[racePhase()]; const ps=(S.profile&&S.profile.programme_start)?new Date(S.profile.programme_start):new Date('2026-05-18'); return Math.max(1, Math.min(13, Math.ceil((new Date()-ps)/604800000)+1)); };
+const curWeek = () => { if(typeof UID!=='undefined'&&UID&&UID.startsWith(YOSUKE_UID_PREFIX)){return Math.max(1,Math.min(7,Math.ceil((new Date()-new Date('2026-06-19'))/604800000)+1));} const d=days2race(); if(d!=null) return PHASE_WK[racePhase()]; const ps=(S.profile&&S.profile.programme_start)?new Date(S.profile.programme_start):new Date('2026-05-18'); return Math.max(1, Math.min(13, Math.ceil((new Date()-ps)/604800000)+1)); };
 const phaseOf = w => w<=3?'Base':w===4?'Deload':w<=7?'Threshold':w===8?'Deload':w<=11?'Race Specific':w===12?'Deload':'Taper';
 const phaseColor = p => ({Base:'#5B9CF6',Deload:'#FFB547',Threshold:'#C8F135','Race Specific':'#FF6B9D',Peak:'#BF5AF2',Taper:'#FF9500'}[p]||'#666');
 
