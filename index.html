@@ -1865,6 +1865,7 @@ function editBench(key, name, curr){
 
 // ── SEED THIS WEEK'S SESSIONS ─────────────────────────────────────────────
 function seedWeekSessions(){
+  if(!UID || !UID.startsWith('7319b958')) return;
   if(S.sessions.length >= 14) return; // don't re-seed if already up to date
   const seeded = [
     { id:'seed1', date:'2026-05-18', type:'Gym', runType:'', dist:'', pace:'', hr:'109', lifts:'Leg press 4×sets 44/51/58/58kg, Goblet squat 26kg + Farmer carry 30kg×30m ×4sets, Deadlift 50/60/60/60kg, Bulgarian SS 12kg×3sets, DB thrusters 9kg×4sets', rpe:'7', dur:'59', notes:'W1 intro — lighter weights, form focus. Leg press machine basic (narrow stance vertical). Building up.', stations:{} },
