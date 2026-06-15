@@ -539,7 +539,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────
 const RACE_DATE = new Date('2026-07-05');
-const TARGETS = { SkiErg:250, SledPush:175, SledPull:135, BurpeeBJ:235, Row:220, FarmerCarry:115, Lunges:240, WallBalls:230 };
+const TARGETS_OPEN = { SkiErg:250, SledPush:175, SledPull:135, BurpeeBJ:235, Row:220, FarmerCarry:115, Lunges:240, WallBalls:230 };
+const TARGETS_PRO  = { SkiErg:250, SledPush:195, SledPull:155, BurpeeBJ:240, Row:220, FarmerCarry:125, Lunges:255, WallBalls:250 };
+function _isPro(p){ p=p||(typeof S!=='undefined'&&S.profile)||{}; return /pro/i.test((p.target_format||'')+' '+(p.division||'')); }
+let TARGETS = TARGETS_OPEN;
 
 // ── PROGRAMME DATA ────────────────────────────────────────────────────────
 const PROG_STD = {
@@ -1051,13 +1054,18 @@ function _athlete(){
   const k=Object.keys(ATHLETE_PROGS).find(p=>UID.startsWith(p));
   return k?ATHLETE_PROGS[k]:null;
 }
+function progForDate(d){
+  if(d<='2026-06-14') return PROG_STD;
+  if(d<='2026-06-28') return PROG_WARRIORS;
+  if(d<='2026-07-05') return PROG_TAPER;
+  return PROG_POSTRACE;
+}
+const PROG_START_W1='2026-05-18';
+function jasonWeekProg(W){ const m=new Date(PROG_START_W1+'T00:00:00'); m.setDate(m.getDate()+(Math.max(1,W)-1)*7); return progForDate(m.toISOString().slice(0,10)); }
+function blockLabel(p){ return p===PROG_STD?'Build block':p===PROG_WARRIORS?'Warriors block':p===PROG_TAPER?'Race week':p===PROG_POSTRACE?'Post-race':'Plan'; }
 function activeProg(){
   const a=_athlete(); if(a) return a.get();
-  const t=new Date(); const d=t.toISOString().slice(0,10);
-  if(d<='2026-06-14') return PROG_STD;            // current plan through this Sunday
-  if(d<='2026-06-28') return PROG_WARRIORS;       // Warriors block, 2 weeks from Mon Jun 15
-  if(d<='2026-07-05') return PROG_TAPER;          // race week -> Hangzhou Sat Jul 4
-  return PROG_POSTRACE;                           // post-race: recover + reassess
+  return progForDate(new Date().toISOString().slice(0,10));
 }
 const PROG = new Proxy({}, { get:(_,k)=>activeProg()[k], ownKeys:()=>Reflect.ownKeys(activeProg()), getOwnPropertyDescriptor:(_,k)=>({enumerable:true,configurable:true,value:activeProg()[k]}) });
 const DAY_ORDER = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -1079,7 +1087,7 @@ function loadS(){
 const s2m = s => { const m=Math.floor(s/60),ss=s%60; return m+':'+(ss<10?'0':'')+ss; };
 const m2s = str => { if(!str||!str.includes(':'))return 0; const[m,s]=str.split(':'); return parseInt(m||0)*60+parseInt(s||0); };
 const days2race = () => { const d=(S.profile&&S.profile.target_race_date); if(!d) return null; return Math.max(0, Math.ceil((new Date(d)-new Date())/86400000)); };
-const curWeek = () => { const a=_athlete(); if(a){ if(a.mode==='countdown') return Math.max(1,Math.min(a.weeks,Math.ceil((new Date()-new Date(a.start))/604800000)+1)); return 1; } const d=days2race(); if(d!=null) return PHASE_WK[racePhase()]; const ps=(S.profile&&S.profile.programme_start)?new Date(S.profile.programme_start):new Date('2026-05-18'); return Math.max(1, Math.min(13, Math.ceil((new Date()-ps)/604800000)+1)); };
+const curWeek = () => { const a=_athlete(); if(a){ if(a.mode==='countdown') return Math.max(1,Math.min(a.weeks,Math.ceil((new Date()-new Date(a.start))/604800000)+1)); return 1; } const ps=(S.profile&&S.profile.programme_start)?new Date(S.profile.programme_start):new Date(PROG_START_W1+'T00:00:00'); return Math.max(1, Math.min(13, Math.floor((new Date()-ps)/604800000)+1)); };
 const phaseOf = w => w<=3?'Base':w===4?'Deload':w<=7?'Threshold':w===8?'Deload':w<=11?'Race Specific':w===12?'Deload':'Taper';
 const phaseColor = p => ({Base:'#5B9CF6',Deload:'#FFB547',Threshold:'#C8F135','Race Specific':'#FF6B9D',Peak:'#BF5AF2',Taper:'#FF9500'}[p]||'#666');
 
@@ -1376,8 +1384,10 @@ function proxyFor(name, eq){
 function renderProg(){
   const wk = parseInt(document.getElementById('wk-sel').value);
   const venue = document.getElementById('venue-sel').value;
-  const ph = phaseOf(wk);
-  document.getElementById('prog-phase-badge').innerHTML = `<span class="badge" style="background:${phaseColor(ph)}22;color:${phaseColor(ph)}">Week ${wk} · ${ph}</span>`;
+  const _ath0 = _athlete();
+  const _base = _ath0 ? activeProg() : jasonWeekProg(wk);
+  const _blabel = _ath0 ? phaseOf(wk) : blockLabel(_base);
+  document.getElementById('prog-phase-badge').innerHTML = `<span class="badge" style="background:${phaseColor(phaseOf(wk))}22;color:${phaseColor(phaseOf(wk))}">Week ${wk} · ${_blabel}</span>`;
   const container = document.getElementById('prog-days');
   const _pri=stationPriorities();
   const _highs=Object.keys(_pri).filter(k=>_pri[k]==='High').map(k=>(_STATIONS.find(s=>s[0]===k)||[k,k])[1]);
@@ -1387,12 +1397,12 @@ function renderProg(){
   const now = new Date().getDay();
   const dayMap = {Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:0};
   const gen = genWeek();
-  const SRC = gen?gen.week:PROG;
+  const SRC = gen?gen.week:_base;
   const effWk = gen?gen.wk:wk;
   if(gen) document.getElementById('prog-phase-badge').innerHTML = `<span class="badge" style="background:${phaseColor(phaseOf(effWk))}22;color:${phaseColor(phaseOf(effWk))}">${gen.phase} phase · generated</span>`;
 
   DAY_ORDER.forEach(dayKey=>{
-    const day = SRC[dayKey]||PROG[dayKey];
+    const day = SRC[dayKey]||_base[dayKey];
     const isToday = dayMap[dayKey]===now;
     const div = document.createElement('div');
     div.className = 'day-card';
@@ -1676,7 +1686,7 @@ function renderGroup(){
   // radar overlay
   const ctx=document.getElementById('groupRadar');
   if(ctx){const cols=['#C8F135','#5B9CF6','#FF8A4D'];
-    const ds=GROUP.members.map((m,i)=>({label:m.profile.display_name||'A',data:_STATIONS.map(([k])=>{const v=m.bench[k];const tgt=({SkiErg:250,SledPush:175,SledPull:135,BurpeeBJ:235,Row:220,FarmerCarry:115,Lunges:240,WallBalls:230})[k];return v?Math.min(120,Math.round(tgt/v*100)):0;}),borderColor:cols[i%3],backgroundColor:cols[i%3].replace(')',',.08)').replace('#','rgba(').length?cols[i%3]+'22':cols[i%3],borderWidth:2,pointRadius:2,pointBackgroundColor:cols[i%3]}));
+    const ds=GROUP.members.map((m,i)=>({label:m.profile.display_name||'A',data:_STATIONS.map(([k])=>{const v=m.bench[k];const tgt=(_isPro(m.profile)?TARGETS_PRO:TARGETS_OPEN)[k];return v?Math.min(120,Math.round(tgt/v*100)):0;}),borderColor:cols[i%3],backgroundColor:cols[i%3].replace(')',',.08)').replace('#','rgba(').length?cols[i%3]+'22':cols[i%3],borderWidth:2,pointRadius:2,pointBackgroundColor:cols[i%3]}));
     if(_grpRadar)_grpRadar.destroy();
     _grpRadar=new Chart(ctx,{type:'radar',data:{labels:_STATIONS.map(s=>s[1]),datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:'#aaa'}}},scales:{r:{min:0,max:120,ticks:{display:false},grid:{color:'rgba(255,255,255,.06)'},angleLines:{color:'rgba(255,255,255,.06)'},pointLabels:{font:{size:9},color:'#888'}}}}});
   }
@@ -1793,6 +1803,7 @@ function deriveStats(){
   return {count:R.length,bestOpen,bestAG,latest,openTrend,featured};
 }
 function applyProfile(){
+  applyTargets();
   const p=S.profile||{},st=deriveStats();
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   set('hdr-name',p.display_name||'Athlete');
@@ -1836,7 +1847,9 @@ function renderProjBig(){
   document.getElementById('proj-big').textContent = p?_hms(p):'\u2014';
 }
 
-const STATION_TGT=[{k:'SkiErg',n:'SkiErg (1000m)',tgt:250},{k:'Row',n:'Row (1000m)',tgt:220},{k:'SledPush',n:'Sled push',tgt:175},{k:'BurpeeBJ',n:'BBJ',tgt:235},{k:'Lunges',n:'Sandbag lunges (100m)',tgt:240},{k:'WallBalls',n:'Wall balls',tgt:230},{k:'SledPull',n:'Sled pull',tgt:135},{k:'FarmerCarry',n:'Farmers carry',tgt:115}];
+const STATION_META=[{k:'SkiErg',n:'SkiErg (1000m)'},{k:'Row',n:'Row (1000m)'},{k:'SledPush',n:'Sled push'},{k:'BurpeeBJ',n:'BBJ'},{k:'Lunges',n:'Sandbag lunges (100m)'},{k:'WallBalls',n:'Wall balls'},{k:'SledPull',n:'Sled pull'},{k:'FarmerCarry',n:'Farmers carry'}];
+function applyTargets(){ TARGETS = _isPro()?TARGETS_PRO:TARGETS_OPEN; STATION_TGT = STATION_META.map(d=>({...d,tgt:TARGETS[d.k]})); }
+let STATION_TGT = STATION_META.map(d=>({...d,tgt:TARGETS[d.k]}));
 function stationPriorities(){
   const ranked=STATION_TGT.filter(d=>S.benchmarks[d.k]!=null).map(d=>({k:d.k,gap:(S.benchmarks[d.k]-d.tgt)/d.tgt})).sort((a,b)=>b.gap-a.gap);
   const pri={}; ranked.forEach((r,i)=>{pri[r.k]=i<3?'High':i<5?'Med':'Low';});
