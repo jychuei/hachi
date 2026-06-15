@@ -1054,6 +1054,7 @@ function _athlete(){
   const k=Object.keys(ATHLETE_PROGS).find(p=>UID.startsWith(p));
   return k?ATHLETE_PROGS[k]:null;
 }
+function _localISO(x){const z=x?new Date(x):new Date();return z.getFullYear()+'-'+String(z.getMonth()+1).padStart(2,'0')+'-'+String(z.getDate()).padStart(2,'0');}
 function progForDate(d){
   if(d<='2026-06-14') return PROG_STD;
   if(d<='2026-06-28') return PROG_WARRIORS;
@@ -1061,11 +1062,11 @@ function progForDate(d){
   return PROG_POSTRACE;
 }
 const PROG_START_W1='2026-05-18';
-function jasonWeekProg(W){ const m=new Date(PROG_START_W1+'T00:00:00'); m.setDate(m.getDate()+(Math.max(1,W)-1)*7); return progForDate(m.toISOString().slice(0,10)); }
+function jasonWeekProg(W){ const m=new Date(PROG_START_W1+'T00:00:00'); m.setDate(m.getDate()+(Math.max(1,W)-1)*7); return progForDate(_localISO(m)); }
 function blockLabel(p){ return p===PROG_STD?'Build block':p===PROG_WARRIORS?'Warriors block':p===PROG_TAPER?'Race week':p===PROG_POSTRACE?'Post-race':'Plan'; }
 function activeProg(){
   const a=_athlete(); if(a) return a.get();
-  return progForDate(new Date().toISOString().slice(0,10));
+  return progForDate(_localISO());
 }
 const PROG = new Proxy({}, { get:(_,k)=>activeProg()[k], ownKeys:()=>Reflect.ownKeys(activeProg()), getOwnPropertyDescriptor:(_,k)=>({enumerable:true,configurable:true,value:activeProg()[k]}) });
 const DAY_ORDER = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
