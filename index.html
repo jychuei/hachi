@@ -748,7 +748,7 @@ const PROG_WARRIORS = {
   Thu:{ label:'Thursday', sessions:[
     { type:'Gym', label:'WARRIORS 3 — Station volume', title:'Wall ball reassessment + erg quality',
       exs:[
-        {n:'🏐 WB reassessment (wk1 Thu = 2-week checkpoint)',d:'wk1 (2-wk checkpoint): fresh max unbroken (target: beat 45) · rest 3 min · race scheme 100: 20/15/15/10×5, micro-rests at wall 3-5s · EMOM 10×12. Log max + which chunk failed. wk2: race scheme 60 reps @ tempo only.'},
+        {n:'🏐 WB reassessment (wk1 Thu = 2-week checkpoint)',d:'wk1 (2-wk checkpoint): fresh max unbroken (target: beat 50) · rest 3 min · race scheme 100: 20/15/15/10×5, micro-rests at wall 3-5s · EMOM 10×12. Log max + which chunk failed. wk2: race scheme 60 reps @ tempo only.'},
         {n:'🚣 Row',d:'wk1: 4×500m · wk2: 3×500m @ 1:58-2:02, 60s rest. Neutral catch (L5-S1).'},
         {n:'⛷ SkiErg',d:'wk1: 4×250m · wk2: 3×250m @ goal pace, 45s rest. Exhale on the pull.'},
         {n:'🪢 Sled pull touch',d:'2×12.5m @ race weight — frequency on the new station while you have it'},
@@ -1238,7 +1238,9 @@ function goTo(page, btn){
 // ── HEADER ────────────────────────────────────────────────────────────────
 function updateHeader(){
   const d=days2race(),w=curWeek();
-  const ph = d==null ? ('W'+w+' \u00b7 '+phaseOf(w)) : (d<=6?'Race week':{base:'Base',build:'Build',peak:'Peak',taper:'Taper'}[racePhase()]);
+  const blockLabelForToday = () => { try{ if(!_athlete() && progForDate(_localISO())===PROG_WARRIORS) return 'Warriors'; }catch(e){} return null; };
+  const _blk = blockLabelForToday();
+  const ph = d==null ? ('W'+w+' \u00b7 '+phaseOf(w)) : (_blk ? _blk : (d<=6?'Race week':{base:'Base',build:'Build',peak:'Peak',taper:'Taper'}[racePhase()]));
   const rn=(S.profile&&S.profile.target_race_name)||'race';
   document.getElementById('hdr-countdown').textContent=(d!=null?d+' days \u00b7 '+rn:'No race set');
   document.getElementById('hdr-phase').textContent=ph;
