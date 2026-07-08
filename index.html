@@ -305,7 +305,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
         <div class="metrics-grid" style="grid-template-columns:1fr 1fr 1fr">
           <div class="metric-box"><div class="metric-label">Races</div><div class="metric-value" style="color:var(--text)" id="race-count">0</div></div>
           <div class="metric-box"><div class="metric-label">Best open</div><div class="metric-value" style="font-size:18px" id="race-bestopen">—</div></div>
-          <div class="metric-box"><div class="metric-label">Best AG</div><div class="metric-value" style="color:var(--text)" id="race-bestag">—</div><div class="metric-sub" id="race-bestag-sub">—</div></div>
+          <div class="metric-box"><div class="metric-label">Best rank</div><div class="metric-value" style="color:var(--text)" id="race-bestag">—</div><div class="metric-sub" id="race-bestag-sub">—</div></div>
         </div>
 
         <div class="card">
@@ -541,7 +541,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 const RACE_DATE = new Date('2026-07-05');
 const TARGETS_OPEN = { SkiErg:250, SledPush:175, SledPull:135, BurpeeBJ:235, Row:220, FarmerCarry:115, Lunges:240, WallBalls:230 };
 const TARGETS_PRO  = { SkiErg:250, SledPush:195, SledPull:155, BurpeeBJ:240, Row:220, FarmerCarry:125, Lunges:255, WallBalls:250 };
-function _isPro(p){ p=p||(typeof S!=='undefined'&&S.profile)||{}; return /pro/i.test((p.target_format||'')+' '+(p.division||'')); }
+function _isPro(p){ p=p||(typeof S!=='undefined'&&S.profile)||{}; if(p.target_format) return /pro/i.test(p.target_format); return /pro/i.test(p.division||''); }
 let TARGETS = TARGETS_OPEN;
 
 // ── PROGRAMME DATA ────────────────────────────────────────────────────────
@@ -1305,7 +1305,7 @@ function renderHRVChart(){
 function logHRV(){
   const v = parseFloat(document.getElementById('hrv-in').value);
   if(!v) return;
-  S.hrv.history.push({date:new Date().toISOString().slice(0,10),val:v});
+  S.hrv.history.push({date:_localISO(),val:v});
   saveS(); renderHRVStatus(); renderHRVChart();
   document.getElementById('hrv-in').value='';
 }
@@ -1461,26 +1461,20 @@ async function importWorkoutShot(e){
   try{
     const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(f);});
     msg.textContent='Analysing\u2026 (a few seconds)';
-    const {data,error}=await sb.functions.invoke('parse-workout',{body:{image:b64,mediaType:f.type||'image/jpeg'}});
+    const {data,error}=await sb.functions.invoke('parse-workout',{body:{images:[b64],source:'app'}});
     if(error){msg.textContent='Parse failed: '+(error.message||JSON.stringify(error));return;}
     if(!data||data.error){msg.textContent='Could not parse: '+((data&&data.error)||'no data');return;}
-    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null&&v!=='')el.value=v;};
-    if(data.type){const t=document.getElementById('l-type');if(t){t.value=data.type;toggleFields();}}
-    set('l-dist',data.distance_km); set('l-pace',data.pace); set('l-hr',data.hr); set('l-dur',data.duration_min);
-    const st=data.stations||{};
-    set('s-ski',st.ski);set('s-sp',st.sp);set('s-sl',st.sl);set('s-bbj',st.bbj);
-    set('s-row',st.row);set('s-fc',st.fc);set('s-lu',st.lu);set('s-wb',st.wb);
-    let notes=data.notes||'';
-    if(data.run_splits&&data.run_splits.length)notes=(notes?notes+' \u00b7 ':'')+'Runs: '+data.run_splits.join(', ');
-    set('l-notes',notes);
-    msg.textContent='\u2713 Parsed \u2014 review fields and Save';
+    const {data:se}=await sb.from('sessions').select('*').eq('user_id',UID).order('date');
+    if(se){S.sessions=_dedupeS(se.map(_toSess));try{localStorage.setItem(_lsK(),JSON.stringify(S));}catch{}}
+    closeLogModal(); renderLogList(); renderDash();
+    msg.textContent=data.deduped?'Already logged \u2014 no duplicate created':'\u2713 '+(data.summary||'Added')+' \u2014 confirm in review banner';
   }catch(err){msg.textContent='Error: '+err.message;}
   e.target.value='';
 }
 function openLogModal(){
   _editId=null;
   document.getElementById('log-modal').classList.remove('hidden');
-  document.getElementById('l-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('l-date').value = _localISO();
   toggleFields();
 }
 function closeLogModal(){ _editId=null; document.getElementById('log-modal').classList.add('hidden'); }
@@ -1723,13 +1717,13 @@ async function importHyresult(){
     const {data,error}=await sb.functions.invoke('hyresult',{body:{url}});
     if(error){msg.textContent='fn error: '+(error.message||JSON.stringify(error));return;}
     if(!data||!data.total_sec){msg.textContent='parsed but no total: '+JSON.stringify(data).slice(0,80);return;}
-    const row={user_id:UID,date:data.date||new Date().toISOString().slice(0,10),location:data.location||'Race',category:data.category||'Open',total_sec:data.total_sec,rank:data.rank||null,station_times:data.station_times||null,run_splits:data.run_splits||null};
+    const row={user_id:UID,date:data.date||_localISO(),location:data.location||'Race',category:data.category||'Open',total_sec:data.total_sec,rank:data.rank||null,station_times:data.station_times||null,run_splits:data.run_splits||null};
     if((S.races||[]).some(r=>r.total_sec===row.total_sec&&r.category===row.category&&r.location===row.location)){msg.textContent='Already imported';return;}
     const {data:ins}=await sb.from('races').insert(row).select();
     S.races=[...(S.races||[]),...(ins||[row])];
     if(data.station_times&&data.station_times.length){
       const bm=data.station_times.filter(s=>s.k&&s.t).map(s=>({user_id:UID,station:s.k,best_sec:s.t}));
-      if(bm.length) await sb.from('benchmarks').upsert(bm);
+      if(bm.length){const {error:bErr}=await sb.from('benchmarks').upsert(bm,{onConflict:'user_id,station'});if(bErr)console.error('benchmark upsert',bErr.message);}
       data.station_times.forEach(s=>{if(s.k&&s.t&&(S.benchmarks[s.k]==null||s.t<S.benchmarks[s.k]))S.benchmarks[s.k]=s.t;});
     }
     document.getElementById('rf-url').value='';
@@ -1802,7 +1796,7 @@ function deriveStats(){
   const bestAG=R.reduce((a,b)=>{const n=parseInt(String(b.rank||'').replace('#',''));if(!n)return a;return(!a||n<a._n)?Object.assign({_n:n},b):a;},null);
   const latest=R.reduce((a,b)=>(!a||new Date(b.date)>new Date(a.date))?b:a,null);
   const openTrend=open.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).map(r=>({l:new Date(r.date).toLocaleString('en',{month:'short'})+' '+String(new Date(r.date).getFullYear()).slice(2),s:r.total_sec}));
-  const featured=R.find(r=>r.station_times&&r.station_times.length)||latest;
+  const featured=[...R].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).find(r=>r.station_times&&r.station_times.length)||latest;
   return {count:R.length,bestOpen,bestAG,latest,openTrend,featured};
 }
 function applyProfile(){
@@ -1880,30 +1874,6 @@ function editBench(key, name, curr){
 }
 
 // ── SEED THIS WEEK'S SESSIONS ─────────────────────────────────────────────
-function seedWeekSessions(){
-  if(!UID || !UID.startsWith('7319b958')) return;
-  if(S.sessions.length >= 14) return; // don't re-seed if already up to date
-  const seeded = [
-    { id:'seed1', date:'2026-05-18', type:'Gym', runType:'', dist:'', pace:'', hr:'109', lifts:'Leg press 4×sets 44/51/58/58kg, Goblet squat 26kg + Farmer carry 30kg×30m ×4sets, Deadlift 50/60/60/60kg, Bulgarian SS 12kg×3sets, DB thrusters 9kg×4sets', rpe:'7', dur:'59', notes:'W1 intro — lighter weights, form focus. Leg press machine basic (narrow stance vertical). Building up.', stations:{} },
-    { id:'seed2', date:'2026-05-19', type:'Run', runType:'Long run', dist:'10.87', pace:'5:26', hr:'131', lifts:'', rpe:'6', dur:'59', notes:'Garmin base run. Low aerobic eval. Good Z2 long run, solid base.', stations:{} },
-    { id:'seed3', date:'2026-05-20', type:'F45', runType:'', dist:'', pace:'', hr:'122', lifts:'', rpe:'5', dur:'36', notes:'F45 Bears. Garmin eval: low aerobic — lighter day.', stations:{} },
-    { id:'seed4', date:'2026-05-21', type:'Compromised', runType:'', dist:'4', pace:'5:23', hr:'151', lifts:'', rpe:'8', dur:'22', notes:'5×800m treadmill (pace recorded for runs only) + cycle 2min sprint / BBJ 30r / barbell lunge 30r@20kg. @TIP.X Shibuya. Run pace ~4:18/km per 800m — strong but cap at 4:35 next session.', stations:{} },
-    { id:'seed5', date:'2026-05-21', type:'Gym', runType:'', dist:'', pace:'', hr:'116', lifts:'DB press 8×4@24kg, Close grip incline 8×4@18kg, Push-up to failure 20+18', rpe:'7', dur:'21', notes:'Chest finisher post compromised session.', stations:{} },
-    { id:'seed6', date:'2026-05-22', type:'Gym', runType:'', dist:'', pace:'', hr:'100', lifts:'Plyo fwd hops 2×8/leg, Plyo side hops 2×8/leg, RDL 4×10@60kg, Farmer carry 30kg×150m (50+25+25+25+25m), Suitcase carry 30kg×25m×3/side, Nordic curl 3×8, Goblet squat 3×20@28kg, Seated row 4×15@56kg', rpe:'7', dur:'77', notes:'W1 Friday. No boxes — hops only. RDL build to 68kg next. Row 56kg → 62kg explosive next. Carry build to 32kg/hand.', stations:{} },
-    { id:'seed7', date:'2026-05-23', type:'Run', runType:'Intervals', dist:'9.04', pace:'5:04', hr:'155', lifts:'', rpe:'7', dur:'46', notes:'Komazawa progressive intervals. 100/200/100/200/500/500m fast efforts + sustained 1km laps. Fast efforts 4:15–4:27/km. Laps 15–16 @ 5:01–5:03/km. HR 155 avg. Top-end ceiling: 4:15–4:26 short burst. W1 complete — 7 sessions.', stations:{} },
-    { id:'seed8', date:'2026-05-25', type:'Gym', runType:'', dist:'', pace:'', hr:'106', lifts:'Depth drop→jump 10r, Smith squat 4×8@60kg, Smith DL 4×8@70kg, Stacked DB squat 4×20@2×14kg, Farmer carry 3×30m@30kg/hand, Bulgarian SS 3×10/side@2×8kg, DB thruster 3×15@2×10kg, Dead hang 55+40+20+20s', rpe:'7', dur:'89', notes:'W2 Monday. Smith machine — L5-S1 bulging disc. No box. Depth drop from floor. Progressive: Smith squat to 65kg, DL to 75kg next session. Dead hang 55s first set.', stations:{} },
-    { id:'seed9', date:'2026-05-26', type:'Run', runType:'Easy', dist:'8.51', pace:'5:21', hr:'158', lifts:'', rpe:'7', dur:'46', notes:'Komazawa base. Heavy legs post Monday leg session. HR 158 at 5:21 vs HR 131 at 5:26 in W1 — 27bpm higher, normal fatigue response. Legs recovering for Thursday compromised.', stations:{} },
-    { id:'seed10', date:'2026-05-27', type:'F45', runType:'', dist:'', pace:'', hr:'125', lifts:'', rpe:'6', dur:'38', notes:'F45: 22. Cardio format with structured rest. HR 125 avg — low aerobic eval. Active recovery role between Tue run and Thu compromised. PM SkiErg/Row block is the quality session today.', stations:{} },
-    { id:'seed11', date:'2026-05-28', type:'Compromised', runType:'', dist:'4.8', pace:'5:44', hr:'142', lifts:'', rpe:'9', dur:'70', notes:'W2 Thu. Renaissance Shinjuku 24. 6×800m runs + stations: row 500m / sled push 150kg×40m (near open race weight 152kg) / sled pull+push 150kg / lunges 20kg×40m / row 500m / wall balls 6kg×100r. Run splits: 5:25→5:28→5:54→5:54→6:01→6:01/km. Total run time 27:26. Row 2:09/500m both rounds consistent. WB 7:21 fatigued (open race weight 6kg). Sled finisher 150kg pull+100kg push arms only. Best session of programme.', stations:{FarmerCarry:97,Row:129,Lunges:133,WallBalls:441} },
-    { id:'seed12', date:'2026-05-29', type:'Gym', runType:'', dist:'', pace:'', hr:'92', lifts:'Seated cable row 4×12@63kg, Lat pulldown 3×13@49kg, Single-arm DB row 3×10@24kg, Face pull 3×15@10kg, DB shoulder press 3×12@18kg, DB incline press 3×10@24kg, Push-up 21+21, Dead hang 45+45+30s, Plank 150s, Hollow hold 3×30s', rpe:'7', dur:'74', notes:'W2 Friday. Upper body — legs rest post Thu 150kg sled. Form breaking last reps of rows — weights correct, need stricter reset. Push-up up from 20+18. Dead hang building. W2 complete.', stations:{} },
-    { id:'seed13', date:'2026-05-30', type:'F45', runType:'', dist:'', pace:'', hr:'112', lifts:'', rpe:'5', dur:'54', notes:'F45: Track Stars. Saturday hybrid format. HR 112 — low aerobic eval, lighter day. 54 min. End of W2.', stations:{} },
-    { id:'seed14', date:'2026-06-01', type:'Gym', runType:'', dist:'', pace:'', hr:'109', lifts:'Box jump 3×6 warm-up, Smith squat 4×10@61.3kg (50kg plates+11.3kg bar), Smith DL 4×8@76.3kg (65kg plates+11.3kg bar), Goblet squat 4×20@2×14kg, Farmer carry 3×30m@32kg/hand, Bulgarian SS 3×10/leg@2×9kg, DB thruster 3×15@2×10kg, Dead hang 50+30+40s', rpe:'7', dur:'81', notes:'W3 Monday. TIP.X Shibuya. Smith bar 11.3kg — effective squat 50kg plates, DL 65kg plates. Lighter than target but stable base. Carry 30m — extend to 40m next. Dead hang 50s. Next Monday: Shinjuku barbell + sled overload (squat 65kg, DL 80kg).', stations:{} },
-  ];
-  S.sessions = seeded;
-  saveS();
-}
-
-// ── MANUAL BACKFILL (Jason only, idempotent — dedupe by date|type|dur|dist) ──
 function backfillManual(){
   if(!UID || !UID.startsWith('7319b958')) return;
   const rows = [
@@ -1936,7 +1906,6 @@ function backfillManual(){
 // ── INIT ──────────────────────────────────────────────────────────────────
 function init(){
   loadS();
-  seedWeekSessions();
   backfillManual();
   updateHeader();
   renderDash();
@@ -1945,7 +1914,7 @@ function init(){
   loadGroup();
   document.getElementById('wk-sel').value = curWeek();
   // default log date
-  document.getElementById('l-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('l-date').value = _localISO();
 }
 
 
@@ -1973,17 +1942,19 @@ async function loadFromSupabase(){
   if(!hv.error)S.hrv={history:(hv.data||[]).map(r=>({date:r.date,val:Number(r.value)}))};
   if(!ra.error)S.races=ra.data||[];
   if(pr.data)S.profile=pr.data;
-  else{const ins={user_id:UID,display_name:(SB_EMAIL||'').split('@')[0]};try{await sb.from('profiles').insert(ins);}catch(e){}S.profile=ins;}
+  else{const ins={user_id:UID,display_name:(SB_EMAIL||'').split('@')[0]};try{const {error:pErr}=await sb.from('profiles').insert(ins);if(pErr)console.warn('profile insert failed:',pErr.message);}catch(e){console.warn('profile insert failed:',e.message);}S.profile=ins;}
   try{localStorage.setItem(_lsK(),JSON.stringify(S));}catch{}
   }catch(e){ console.error('loadFromSupabase failed',e); _showLogin('Network error loading data \u2014 check connection and sign in again'); }
 }
+let _syncErrOnce=false;
+function _syncErr(op,e){console.error('sync '+op+' failed:',e.message||e);if(_syncErrOnce)return;_syncErrOnce=true;const m=document.getElementById('shot-msg');if(m)m.textContent='\u26a0 Sync failed \u2014 changes saved locally, retrying';}
 async function pushAll(){
   if(!UID)return;
   const ss=S.sessions||[];
   const fresh=ss.filter(o=>!_uuid(o.id));
-  if(fresh.length){const {data}=await sb.from('sessions').insert(fresh.map(_toRow)).select();if(data)fresh.forEach((o,i)=>{if(data[i])o.id=data[i].id;});}
+  if(fresh.length){const {data,error}=await sb.from('sessions').insert(fresh.map(_toRow)).select();if(error)_syncErr('insert',error);else if(data)fresh.forEach((o,i)=>{if(data[i])o.id=data[i].id;});}
   const ext=ss.filter(o=>_uuid(o.id));
-  if(ext.length)await sb.from('sessions').upsert(ext.map(_toRow));
+  if(ext.length){const {error:uErr}=await sb.from('sessions').upsert(ext.map(_toRow));if(uErr)_syncErr('upsert',uErr);}
   const bm=Object.entries(S.benchmarks||{}).map(([station,best_sec])=>({user_id:UID,station,best_sec}));
   if(bm.length)await sb.from('benchmarks').upsert(bm,{onConflict:'user_id,station'});
   const hv=((S.hrv&&S.hrv.history)||[]).map(h=>({user_id:UID,date:h.date,value:h.val}));

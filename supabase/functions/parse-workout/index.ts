@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.108.1";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -38,8 +38,16 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
 
   const ingestKey = Deno.env.get("HACHI_INGEST_KEY");
-  if (ingestKey && req.headers.get("x-hachi-key") !== ingestKey) {
-    return json({ error: "unauthorized" }, 401);
+  if (!ingestKey) return json({ error: "server misconfigured: HACHI_INGEST_KEY not set" }, 500);
+  const keyOk = req.headers.get("x-hachi-key") === ingestKey;
+  let jwtUserId: string | null = null;
+  if (!keyOk) {
+    const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!token) return json({ error: "unauthorized" }, 401);
+    const anon = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
+    const { data: ud, error: uErr } = await anon.auth.getUser(token);
+    if (uErr || !ud?.user) return json({ error: "unauthorized" }, 401);
+    jwtUserId = ud.user.id;
   }
 
   let body: any;
@@ -70,11 +78,20 @@ Deno.serve(async (req) => {
   });
   content.push({ type: "text", text: EXTRACT_PROMPT });
 
-  const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": anthropicKey, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: MODEL, max_tokens: 1024, messages: [{ role: "user", content }] }),
-  });
+  const ac = new AbortController();
+  const tid = setTimeout(() => ac.abort(), 30_000);
+  let aiRes: Response;
+  try {
+    aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": anthropicKey, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: MODEL, max_tokens: 1024, messages: [{ role: "user", content }] }),
+      signal: ac.signal,
+    });
+  } catch (e) {
+    const err = e as Error;
+    return json({ error: err.name === "AbortError" ? "anthropic timeout (30s)" : "anthropic fetch failed: " + err.message }, 504);
+  } finally { clearTimeout(tid); }
   if (!aiRes.ok) return json({ error: "anthropic " + aiRes.status, detail: await aiRes.text() }, 502);
 
   const aiData = await aiRes.json();
@@ -83,11 +100,17 @@ Deno.serve(async (req) => {
   try { p = JSON.parse(strip(raw)); } catch { return json({ error: "parse failed", raw }, 422); }
 
   {
-    const cy = new Date().getFullYear();
-    if (!p.date) p.date = new Date().toISOString().slice(0, 10);
+    // JST (UTC+9, no DST): avoid the UTC 'yesterday before 09:00' trap
+    const todayJST = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    const m = String(p.date || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) p.date = todayJST;
     else {
-      const m = String(p.date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (m && +m[1] < cy) p.date = `${cy}-${m[2]}-${m[3]}`;
+      // watch screenshots omit the year; normalize to current JST year,
+      // roll back one year only if that lands in the future
+      const cy = +todayJST.slice(0, 4);
+      let d = `${cy}-${m[2]}-${m[3]}`;
+      if (d > todayJST) d = `${cy - 1}-${m[2]}-${m[3]}`;
+      p.date = d;
     }
   }
   p.duration_min = Math.round(Number(p.duration_min) || 0);
@@ -110,8 +133,12 @@ Deno.serve(async (req) => {
 
   const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-  const { data: au } = await sb.auth.admin.listUsers();
-  const userId = au?.users?.find((u: any) => u.email === email)?.id;
+  let userId = jwtUserId;
+  if (!userId) userId = Deno.env.get("HACHI_DEFAULT_UID") || null;
+  if (!userId) {
+    const { data: au } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    userId = au?.users?.find((u: any) => u.email === email)?.id ?? null;
+  }
   if (!userId) return json({ error: "user not found: " + email }, 404);
 
   let dupQ = sb.from("sessions").select("id")
